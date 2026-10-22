@@ -1,0 +1,15 @@
+# Cross sections in pb. Keys are referenced by samples/<era>.yaml (xsec: <key>).
+# Keep the source of every number; the normalisation of every histogram depends on it.
+# Values below are the commonly used Run 3 (13.6 TeV) references; VERIFY against
+# XSDB (https://xsdb-temp.app.cern.ch) / TOP PAG twiki before any result.
+TBbarQtoLNu_tch_13p6TeV:   {xsec: 145.0,   precision: NNLO,  source: "TOP PAG t-channel 13.6 TeV, top quark, times BR(W->lnu)",   note: "verify"}
+TbarBQtoLNu_tch_13p6TeV:   {xsec: 87.2,    precision: NNLO,  source: "TOP PAG t-channel 13.6 TeV, antitop, times BR(W->lnu)",     note: "verify"}
+TTtoLNu2Q_13p6TeV:         {xsec: 405.0,   precision: NNLO+NNLL, source: "923.6 pb total x BR semileptonic", note: "verify"}
+TTto2L2Nu_13p6TeV:         {xsec: 96.9,    precision: NNLO+NNLL, source: "923.6 pb total x BR dileptonic",   note: "verify"}
+TTto4Q_13p6TeV:            {xsec: 422.0,   precision: NNLO+NNLL, source: "923.6 pb total x BR hadronic",     note: "verify"}
+TWminustoLNu2Q_13p6TeV:    {xsec: 19.36,   precision: NNLO,  source: "tW 87.9 pb total / 2 x BR(one W->lnu, other W->qq)", note: "verify"}
+TbarWplustoLNu2Q_13p6TeV:  {xsec: 19.36,   precision: NNLO,  source: "as above", note: "verify"}
+WtoLNu_2Jets_13p6TeV:      {xsec: 64481.6, precision: NLO,   source: "XSDB amcatnloFXFX WtoLNu-2Jets", note: "verify"}
+DYto2L_2Jets_MLL50_13p6TeV: {xsec: 6688.0,  precision: NLO,   source: "XSDB amcatnloFXFX DYto2L-2Jets MLL-50", note: "verify"}
+# Mass variation samples share the nominal cross section (shape-only use).
+TBbarQtoLNu_tch_MT173p5_13p6TeV: {xsec: 145.0, precision: NNLO, source: "nominal t-channel top", note: "mass variation sample"}

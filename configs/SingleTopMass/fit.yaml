@@ -1,0 +1,25 @@
+# Fit configuration of the SingleTopMass analysis.  hell fit configs/SingleTopMass/fit.yaml --strategy 2
+histograms: hists/singletop_2022.root
+variable: topMass
+regions: [2j1b_mu, 2j1b_el]
+signal: [tch]
+backgrounds: [tt, tw, wjets, dy]
+data: data
+shapeSystematics: [muR, muF, isr, fsr, jes, jer]
+normalisation:
+  lumi_2022:  {value: 1.014, processes: ["*"]}
+  xsec_tt:    {value: 1.05,  processes: [tt]}
+  xsec_tw:    {value: 1.10,  processes: [tw]}
+  xsec_wjets: {value: 1.20,  processes: [wjets]}
+  xsec_dy:    {value: 1.20,  processes: [dy]}
+autoMCStats: 10
+output: cards/singletop_2022
+parametric:
+  region: 2j1b_mu
+  signal: tch
+  # mass points: process name in the histogram file per generated top mass
+  massPoints: {"173.5": tch_mt1735}
+combine:
+  method: FitDiagnostics
+  poi: r
+  extra: "--rMin 0 --rMax 3"

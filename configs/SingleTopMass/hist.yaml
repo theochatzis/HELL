@@ -1,0 +1,36 @@
+# Histogramming of the SingleTopMass analysis trees.  hell hist configs/SingleTopMass/hist.yaml
+era: "2022"
+input: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022        # <input>/<sample>/*.root
+variationInput: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022_{variation}
+treeName: Events
+output: hists/singletop_2022.root
+processes:
+  - {name: tch,   label: "t-channel",      color: "#e42536", samples: [TBbarQtoLNu_tch, TbarBQtoLNu_tch]}
+  - {name: tt,    label: "t#bar{t}",       color: "#f89c20", samples: [TTtoLNu2Q, TTto2L2Nu]}
+  - {name: tw,    label: "tW",             color: "#964a8b", samples: [TWminustoLNu2Q, TbarWplustoLNu2Q]}
+  - {name: wjets, label: "W+jets",         color: "#5790fc", samples: [WtoLNu_2Jets]}
+  - {name: dy,    label: "Drell-Yan",      color: "#7a21dd", samples: [DYto2L_2Jets_MLL50]}
+  - {name: data,  label: "Data",           color: "#000000", isData: true, samples: [Muon_2022C, Muon_2022D, EGamma_2022C, EGamma_2022D]}
+regions:
+  2j1b_mu:     {selection: "st_nJet==2 && st_nBJet==1 && st_isMuon==1 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  2j1b_el:     {selection: "st_nJet==2 && st_nBJet==1 && st_isMuon==0 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  3j1b_mu:     {selection: "st_nJet==3 && st_nBJet==1 && st_isMuon==1 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  3j2b_mu:     {selection: "st_nJet==3 && st_nBJet==2 && st_isMuon==1 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  2j1b_mu_qcd: {selection: "st_nJet==2 && st_nBJet==1 && st_isMuon==1 && st_isIsolated==0", weight: "Weight_nominal"}
+variables:
+  topMass:        {expr: st_topMass,        bins: [40, 100, 300], title: "m_{l#nub} [GeV]"}
+  mlb:            {expr: st_mlb,            bins: [40, 0, 400],   title: "m_{lb} [GeV]"}
+  mtw:            {expr: st_mtw,            bins: [40, 0, 200],   title: "m_{T}^{W} [GeV]"}
+  lightJetAbsEta: {expr: st_lightJetAbsEta, bins: [25, 0, 5],     title: "|#eta(j')|"}
+  leptonPt:       {expr: st_leptonPt,       bins: [40, 0, 200],   title: "p_{T}(l) [GeV]"}
+  bJetPt:         {expr: st_bJetPt,         bins: [40, 0, 300],   title: "p_{T}(b) [GeV]"}
+  metPt:          {expr: st_metPt,          bins: [40, 0, 200],   title: "p_{T}^{miss} [GeV]"}
+  cosThetaStar:   {expr: st_cosThetaStar,   bins: [20, -1, 1],    title: "cos#theta*"}
+  nJet:           {expr: st_nJet,           bins: [6, -0.5, 5.5], title: "N_{jets}"}
+systematics:
+  muR: {type: weight, up: "Weight_muRUp/Weight_nominal",  down: "Weight_muRDown/Weight_nominal"}
+  muF: {type: weight, up: "Weight_muFUp/Weight_nominal",  down: "Weight_muFDown/Weight_nominal"}
+  isr: {type: weight, up: "Weight_isrUp/Weight_nominal",  down: "Weight_isrDown/Weight_nominal"}
+  fsr: {type: weight, up: "Weight_fsrUp/Weight_nominal",  down: "Weight_fsrDown/Weight_nominal"}
+  jes: {type: tree,   up: jesUp, down: jesDown}
+  jer: {type: tree,   up: jerUp, down: jerDown}

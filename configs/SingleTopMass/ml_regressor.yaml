@@ -1,0 +1,15 @@
+# Regression of the neutrino pz (as in the old analysis) from kinematics.  hell train configs/SingleTopMass/ml_regressor.yaml
+task: regressor
+treeName: Events
+input: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022
+preselection: "st_nJet==2 && st_nBJet==1 && st_nLepton==1 && st_topValid==1"
+features: [st_leptonPt, st_leptonEta, st_metPt, st_metPhi, st_bJetPt, st_bJetEta, st_lightJetPt, st_lightJetEta, st_mtw]
+spectators: [st_topMass]
+target: st_nuPz          # placeholder target: replace by the gen-level neutrino pz once the gen matching table exists
+weight: Weight_nominal
+samples: [TBbarQtoLNu_tch, TbarBQtoLNu_tch]
+maxEventsPerSample: 300000
+testFraction: 0.3
+model: {hidden: [64, 64], activation: relu, dropout: 0.0}
+training: {epochs: 40, batchSize: 1024, lr: 0.001, weightDecay: 0.00001, seed: 42}
+output: models/st_nupz_regressor

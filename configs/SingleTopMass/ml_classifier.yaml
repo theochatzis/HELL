@@ -1,0 +1,18 @@
+# Signal vs background classifier on the SingleTopMass analysis trees.  hell train configs/SingleTopMass/ml_classifier.yaml
+task: classifier
+treeName: Events
+input: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022
+preselection: "st_nJet==2 && st_nBJet==1 && st_nLepton==1 && st_isIsolated==1"
+# Only variables weakly correlated with the top mass (no mass sculpting)
+features: [st_lightJetAbsEta, st_dEtaBQ, st_cosThetaStar, st_ht, st_leptonPt, st_lightJetPt, st_dRlb, st_bJetPt]
+spectators: [st_topMass]
+weight: Weight_nominal
+classes:
+  tch:   [TBbarQtoLNu_tch, TbarBQtoLNu_tch]
+  top:   [TTtoLNu2Q, TTto2L2Nu, TWminustoLNu2Q, TbarWplustoLNu2Q]
+  wjets: [WtoLNu_2Jets, DYto2L_2Jets_MLL50]
+maxEventsPerSample: 300000
+testFraction: 0.3
+model: {hidden: [64, 64, 32], activation: relu, dropout: 0.1}
+training: {epochs: 40, batchSize: 1024, lr: 0.001, weightDecay: 0.00001, seed: 42}
+output: models/st_classifier
