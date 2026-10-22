@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/Fiery Likelihood Lab HELL Logo.png" alt="HARP" width="100%">
+  <img src="docs/images/hell_logo.png" alt="HELL" width="100%">
 </p>
 
 # HELL - High Energy Likelihood Laboratory
