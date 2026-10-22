@@ -1,0 +1,11 @@
+era: "2022"
+input: test/out/trees/2022
+directory: objVal
+processes:
+  - {name: tch,   label: "t-channel", color: "#e42536", samples: [TbarBQtoLNu_tch]}
+  - {name: tt,    label: "t#bar{t}",  color: "#f89c20", samples: [TTtoLNu2Q]}
+  - {name: wjets, label: "W+jets",    color: "#5790fc", samples: [WtoLNu_2Jets]}
+  - {name: data,  label: "Data",      isData: true, samples: [Muon_2022C]}
+histograms: ["muons/*", "jets/*", "event/*"]
+normalizeShapes: true
+output: test/out/validation

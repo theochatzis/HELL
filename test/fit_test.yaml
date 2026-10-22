@@ -1,0 +1,15 @@
+histograms: test/out/hists_test.root
+variable: topMass
+regions: [2j1b_mu, 2j1b_el]
+signal: [tch]
+backgrounds: [tt, wjets]
+data: data
+shapeSystematics: [muR, isr, jes]
+normalisation:
+  lumi_2022: {value: 1.014, processes: ["*"]}
+  xsec_tt:   {value: 1.05, processes: [tt]}
+  xsec_wjets: {value: 1.20, processes: [wjets]}
+autoMCStats: 10
+output: test/out/cards/singletop_test
+parametric: {region: 2j1b_mu, signal: tch, massPoints: {"172.5": tch, "173.5": tch_mt1735}}
+combine: {method: FitDiagnostics, poi: r, extra: "--rMin 0 --rMax 3"}

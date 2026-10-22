@@ -1,0 +1,24 @@
+# Test histogramming on the quick-test trees (test/run_quick_test.sh)
+era: "2022"
+input: test/out/trees/2022
+variationInput: test/out/trees/2022_{variation}
+treeName: Events
+output: test/out/hists_test.root
+processes:
+  - {name: tch,   label: "t-channel", color: "#e42536", samples: [TbarBQtoLNu_tch]}
+  - {name: tt,    label: "t#bar{t}",  color: "#f89c20", samples: [TTtoLNu2Q]}
+  - {name: wjets, label: "W+jets",    color: "#5790fc", samples: [WtoLNu_2Jets]}
+  - {name: tch_mt1735, label: "t-channel mt=173.5", color: "#964a8b", samples: [TBbarQtoLNu_tch_MT173p5]}
+regions:
+  2j1b_mu: {selection: "st_nJet==2 && st_nBJet==1 && st_isMuon==1 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  2j1b_el: {selection: "st_nJet==2 && st_nBJet==1 && st_isMuon==0 && st_isIsolated==1 && st_mtw>50", weight: "Weight_nominal"}
+  3j2b_mu: {selection: "st_nJet==3 && st_nBJet==2 && st_isMuon==1 && st_isIsolated==1", weight: "Weight_nominal"}
+variables:
+  topMass:        {expr: st_topMass,        bins: [20, 100, 300], title: "m_{l#nub} [GeV]"}
+  mlb:            {expr: st_mlb,            bins: [20, 0, 400],   title: "m_{lb} [GeV]"}
+  lightJetAbsEta: {expr: st_lightJetAbsEta, bins: [10, 0, 5],     title: "|#eta(j')|"}
+  mtw:            {expr: st_mtw,            bins: [20, 0, 200],   title: "m_{T}^{W} [GeV]"}
+systematics:
+  muR: {type: weight, up: "Weight_muRUp/Weight_nominal", down: "Weight_muRDown/Weight_nominal"}
+  isr: {type: weight, up: "Weight_isrUp/Weight_nominal", down: "Weight_isrDown/Weight_nominal"}
+  jes: {type: tree,   up: jesUp, down: jesDown}

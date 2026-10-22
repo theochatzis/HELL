@@ -1,0 +1,13 @@
+task: classifier
+treeName: Events
+input: test/out/trees/2022
+preselection: "st_nJet==2 && st_nBJet==1 && st_nLepton==1 && st_isIsolated==1"
+features: [st_lightJetAbsEta, st_dEtaBQ, st_cosThetaStar, st_ht, st_leptonPt, st_lightJetPt, st_dRlb, st_bJetPt]
+spectators: [st_topMass]
+weight: Weight_nominal
+classes: {tch: [TbarBQtoLNu_tch, TBbarQtoLNu_tch_MT173p5], top: [TTtoLNu2Q], wjets: [WtoLNu_2Jets]}
+maxEventsPerSample: 20000
+testFraction: 0.3
+model: {hidden: [32, 32], activation: relu, dropout: 0.1}
+training: {epochs: 15, batchSize: 256, lr: 0.002, seed: 1}
+output: test/out/models/st_classifier_test
