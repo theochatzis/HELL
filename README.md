@@ -31,7 +31,7 @@ hell pray
 - [How it works](#how-it-works)
 - [Directory layout](#directory-layout)
 - [Documentation](#documentation)
-- [TopNanoAnalysis notes (useful links)](#topnanoanalysis-notes)
+- [General Notes (useful links)](#general-notes)
 
 ## Setup and build
 On lxplus (EL9). The environment is an LCG view from cvmfs (ROOT 6.36, gcc 13, PyTorch, uproot, correctionlib).
