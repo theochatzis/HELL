@@ -115,7 +115,7 @@ Config files answer `hell run cfg.py help` with their options.
 | `Core/` | framework kernel: event loop (Forge), Event, modules, branch readers, bookkeeping, provenance, output trees |
 | `DataFormats/` | the HELL data model and its persistence (flat tables) and ROOT dictionary |
 | `Modules/<Package>/plugins/` | module plugins: Nano readers, Selection, Weights, Top, Output, Analyzers, ML, Systematics |
-| `Hist/`, `Fit/` | histogrammer library (`hell-hist`), datacard/workspace writers (`hell-datacard`) |
+| `Hist/`, `Fit/`, `Plot/` | histogrammer library (`hell-hist`), datacard/workspace writers (`hell-datacard`), CMS TDR plot style |
 | `bin/` | `hell` CLI and the C++ executables' sources |
 | `python/hell/` | config, samples, runner, histcfg, plot, merge, bookkeeping, batch (condor, crab), ml, fit, navigator, cli |
 | `configs/SingleTopMass/` | the analysis configurations (objects, skim, analysis tree, hist, fit, ML) |
