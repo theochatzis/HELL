@@ -14,7 +14,21 @@ def _plt():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    try:  # CMS style through mplhep when available (LCG view)
+        import mplhep as hep
+        hep.style.use("CMS")
+        plt.rcParams.update({"font.size": 12, "axes.labelsize": 13, "legend.fontsize": 9, "figure.figsize": (6, 5)})
+    except ImportError:
+        pass
     return plt
+
+
+def _label(plt, ax=None):
+    try:
+        import mplhep as hep
+        hep.cms.label("Simulation Preliminary", data=False, loc=0, ax=ax or plt.gca(), fontsize=11)
+    except ImportError:
+        pass
 
 
 def roc(scores, truth, weights):
@@ -43,7 +57,7 @@ def validate_classifier(pred_train, pred_test, train_ds, test_ds, outdir, stem):
         fpr, tpr, auc = roc(pred_test[:, c], (test_ds.y == c).astype(float), test_ds.w)
         report["auc"][name] = auc
         plt.figure(figsize=(5, 5)); plt.plot(fpr, tpr, label=f"{name} AUC={auc:.3f}"); plt.plot([0, 1], [0, 1], "k--", lw=0.5)
-        plt.xlabel("false positive rate"); plt.ylabel("true positive rate"); plt.legend(); plt.title(f"ROC: {name} vs rest")
+        plt.xlabel("false positive rate"); plt.ylabel("true positive rate"); plt.legend(title=f"{name} vs rest"); _label(plt)
         plt.savefig(os.path.join(outdir, f"{stem}_roc_{name}.png"), dpi=120); plt.close()
         # Overtraining: score of class c for true-c and others, train vs test
         plt.figure(figsize=(6, 4))
@@ -53,7 +67,7 @@ def validate_classifier(pred_train, pred_test, train_ds, test_ds, outdir, stem):
             plt.hist(pred_train[mtr, c], bins=bins, weights=train_ds.w[mtr], density=True, histtype="step", label=f"{cname} train")
             plt.hist(pred_test[mte, c], bins=bins, weights=test_ds.w[mte], density=True, histtype="stepfilled", alpha=0.25, label=f"{cname} test")
             report["ks"][f"{name}|{cname}"] = ks_statistic(pred_train[mtr, c], pred_test[mte, c], train_ds.w[mtr], test_ds.w[mte])
-        plt.xlabel(f"score {name}"); plt.ylabel("a.u."); plt.legend(fontsize=7); plt.yscale("log")
+        plt.xlabel(f"score {name}"); plt.ylabel("a.u."); plt.legend(fontsize=7); plt.yscale("log"); _label(plt)
         plt.savefig(os.path.join(outdir, f"{stem}_score_{name}.png"), dpi=120); plt.close()
     # Score vs spectators (mass sculpting check): mean score in bins of each spectator
     for sname, svals in test_ds.spectators.items():
@@ -63,7 +77,7 @@ def validate_classifier(pred_train, pred_test, train_ds, test_ds, outdir, stem):
         for c, name in enumerate(train_ds.class_names):
             means = [np.average(pred_test[(svals >= edges[i]) & (svals < edges[i + 1]), c]) if ((svals >= edges[i]) & (svals < edges[i + 1])).any() else np.nan for i in range(20)]
             plt.plot(centers, means, "o-", ms=3, label=f"score {name}")
-        plt.xlabel(sname); plt.ylabel("mean score"); plt.legend(fontsize=7); plt.title("score dependence on spectator")
+        plt.xlabel(sname); plt.ylabel("mean score"); plt.legend(fontsize=7, title="spectator dependence"); _label(plt)
         plt.savefig(os.path.join(outdir, f"{stem}_spectator_{sname}.png"), dpi=120); plt.close()
     with open(os.path.join(outdir, f"{stem}_validation.json"), "w") as f:
         json.dump(report, f, indent=1)
@@ -79,9 +93,9 @@ def validate_regressor(pred_train, pred_test, train_ds, test_ds, outdir, stem, t
               "median_abs_residual": float(np.median(np.abs(res)))}
     plt.figure(figsize=(6, 4)); plt.hist(res, bins=80, weights=test_ds.w, histtype="step", label="test")
     plt.hist(pred_train[:, 0] - train_ds.y, bins=80, weights=train_ds.w, histtype="step", label="train")
-    plt.xlabel(f"predicted - true {target_name}"); plt.legend(); plt.savefig(os.path.join(outdir, f"{stem}_residual.png"), dpi=120); plt.close()
+    plt.xlabel(f"predicted - true {target_name}"); plt.legend(); _label(plt); plt.savefig(os.path.join(outdir, f"{stem}_residual.png"), dpi=120); plt.close()
     plt.figure(figsize=(5, 5)); plt.hist2d(test_ds.y, pred_test[:, 0], bins=60, cmin=1)
-    plt.xlabel(f"true {target_name}"); plt.ylabel("predicted"); plt.savefig(os.path.join(outdir, f"{stem}_response.png"), dpi=120); plt.close()
+    plt.xlabel(f"true {target_name}"); plt.ylabel("predicted"); _label(plt); plt.savefig(os.path.join(outdir, f"{stem}_response.png"), dpi=120); plt.close()
     with open(os.path.join(outdir, f"{stem}_validation.json"), "w") as f:
         json.dump(report, f, indent=1)
     log(f"validation: bias {report['bias']:.3f}, resolution {report['resolution']:.3f}")

@@ -70,7 +70,8 @@ def build_parser():
     pl = sub(s, "plot", "Stacked data/MC plots from a hell-hist output.", "  hell plot hists/2022.root -o plots/2022 --logy")
     pl.add_argument("histfile"); pl.add_argument("-o", "--outdir", default="plots"); pl.add_argument("--region", action="append", default=None)
     pl.add_argument("--variable", action="append", default=None); pl.add_argument("--logy", action="store_true"); pl.add_argument("--format", default="png")
-    pl.add_argument("--lumi-label", default="")
+    pl.add_argument("--lumi-label", default="", help="right-hand text (default from the lumi of the file)")
+    pl.add_argument("--extra", default="Preliminary", help="text under CMS: Preliminary, Work in progress, '' for none")
 
     f = sub(s, "fit", "Write Combine datacards (template or parametric) from histograms and run combine.",
             "  hell fit configs/SingleTopMass/fit.yaml --datacards           # only write cards\n"
@@ -197,7 +198,7 @@ def cmd_unleash(a):
 
 def cmd_plot(a):
     from hell.plot import plot
-    plot(a.histfile, a.outdir, a.region, a.variable, a.format, a.logy, a.lumi_label)
+    plot(a.histfile, a.outdir, a.region, a.variable, a.format, a.logy, a.lumi_label, a.extra)
     return 0
 
 

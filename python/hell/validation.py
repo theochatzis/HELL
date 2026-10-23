@@ -134,51 +134,10 @@ def metrics(data_h, mc_h, normalize_shapes=True):
     return out
 
 
-def plot(data_h, mc_hists, labels, colors, title, out_path, normalize_shapes, text):
-    import ROOT
-    ROOT.gROOT.SetBatch(True); ROOT.gStyle.SetOptStat(0); ROOT.gErrorIgnoreLevel = ROOT.kWarning
-    c = ROOT.TCanvas("c", "", 800, 800)
-    p1 = ROOT.TPad("p1", "", 0, 0.3, 1, 1); p1.SetBottomMargin(0.02); p1.Draw()
-    p2 = ROOT.TPad("p2", "", 0, 0, 1, 0.3); p2.SetTopMargin(0.04); p2.SetBottomMargin(0.35); p2.Draw()
-    ROOT.SetOwnership(p1, False); ROOT.SetOwnership(p2, False)
-    p1.cd()
-    stack = ROOT.THStack("s", "")
-    total = None
-    keep = []
-    scale = 1.0
-    if normalize_shapes and data_h is not None:
-        tot = sum(h.Integral() for h in mc_hists)
-        if tot > 0:
-            scale = data_h.Integral() / tot
-    for h, col in zip(mc_hists, colors):
-        hh = h.Clone(); hh.SetDirectory(0); hh.Scale(scale); keep.append(hh)
-        hh.SetFillColor(ROOT.TColor.GetColor(col)); hh.SetLineColor(ROOT.kBlack)
-        stack.Add(hh)
-        total = hh.Clone("total") if total is None else total
-        if total is not hh:
-            total.Add(hh)
-    keep.append(total)
-    leg = ROOT.TLegend(0.62, 0.6, 0.88, 0.88); leg.SetBorderSize(0); leg.SetFillStyle(0)
-    for hh, lab in reversed(list(zip(keep[:-1], labels))):
-        leg.AddEntry(hh, lab, "f")
-    ymax = max(total.GetMaximum(), data_h.GetMaximum() if data_h else 0)
-    stack.SetMaximum(ymax * 1.5); stack.Draw("hist"); stack.GetXaxis().SetLabelSize(0); stack.GetYaxis().SetTitle("Events")
-    total.SetFillStyle(3354); total.SetFillColor(ROOT.kGray + 2); total.SetMarkerSize(0); total.Draw("e2 same")
-    if data_h:
-        data_h.SetMarkerStyle(20); data_h.SetLineColor(ROOT.kBlack); data_h.Draw("e same"); leg.AddEntry(data_h, "Data", "lep")
-    leg.Draw()
-    lab = ROOT.TLatex(); lab.SetNDC(); lab.SetTextSize(0.04)
-    lab.DrawLatex(0.12, 0.92, "#bf{CMS} #it{HELL validation}  " + title)
-    lab.SetTextSize(0.03); lab.DrawLatex(0.12, 0.86, text)
-    p2.cd()
-    ratio = (data_h if data_h else total).Clone("ratio"); ratio.SetDirectory(0); ratio.Divide(total)
-    ratio.SetTitle(""); ratio.GetYaxis().SetTitle("Data / MC"); ratio.GetYaxis().SetNdivisions(505); ratio.GetYaxis().SetRangeUser(0.5, 1.5)
-    ratio.GetXaxis().SetTitle(mc_hists[0].GetXaxis().GetTitle())
-    for ax in (ratio.GetXaxis(), ratio.GetYaxis()):
-        ax.SetTitleSize(0.12); ax.SetLabelSize(0.1)
-    ratio.GetYaxis().SetTitleOffset(0.45); ratio.Draw("e")
-    line = ROOT.TLine(ratio.GetXaxis().GetXmin(), 1, ratio.GetXaxis().GetXmax(), 1); line.SetLineStyle(2); line.Draw()
-    c.SaveAs(out_path); c.Close()
+def plot(data_h, mc_hists, labels, colors, title, out_path, normalize_shapes, text, lumi_text=None):
+    from hell.plot import stack_with_ratio
+    stack_with_ratio(title.replace("/", "_"), data_h, mc_hists, labels, colors, mc_hists[0].GetXaxis().GetTitle(), lumi_text, out_path,
+                     region_label=title, info_text=text, normalize_to_data=normalize_shapes)
 
 
 def validate(yaml_path, output=None, max_hists=None):
@@ -222,6 +181,8 @@ def validate(yaml_path, output=None, max_hists=None):
     selected = [h for h in all_hists if any(fnmatch.fnmatch(h, pat) for pat in patterns)]
     if max_hists:
         selected = selected[:max_hists]
+    from hell import tdr
+    lumi_text = tdr.lumi_text(lumi, cfg.get("extraText", "Preliminary" if data_procs else "Simulation"))
     log(f"validating {len(selected)} histograms of {directory}/ : {len(mc_procs)} MC processes, {len(data_procs)} data processes, lumi {lumi} pb^-1")
     results = {}
     for hp in selected:
@@ -250,11 +211,11 @@ def validate(yaml_path, output=None, max_hists=None):
         rec = {"histogram": hp}
         if data_h is not None:
             rec.update(metrics(data_h, mc_total, normalize))
-            text = "N_{data}/N_{MC} = %.3f   #chi^{2}/ndf = %.1f/%d   KS p = %.3f   max|pull| = %.1f" % (rec["yield_ratio"], rec["chi2"], rec["ndf"], rec["ks_pvalue"], rec["max_pull"])
+            text = "N_{data}/N_{MC}=%.3f, #chi^{2}/ndf=%.1f/%d, KS p=%.3f, max|pull|=%.1f" % (rec["yield_ratio"], rec["chi2"], rec["ndf"], rec["ks_pvalue"], rec["max_pull"])
         else:
             rec.update({"n_mc": float(mc_total.Integral())})
             text = "no data process: MC only"
-        plot(data_h, mc_hs, labels, colors, hp, os.path.join(outdir, "plots", hp.replace("/", "_") + ".png"), normalize, text)
+        plot(data_h, mc_hs, labels, colors, hp, os.path.join(outdir, "plots", hp.replace("/", "_") + ".png"), normalize, text, lumi_text)
         results[hp] = rec
     # Report: pair weighted / _noSF histograms
     rows = []
