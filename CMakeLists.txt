@@ -42,6 +42,7 @@ add_subdirectory(DataFormats)
 add_subdirectory(Modules)
 add_subdirectory(Hist)
 add_subdirectory(Fit)
+add_subdirectory(Plot)
 add_subdirectory(bin)
 
 message(STATUS "[HELL] Version ${HELL_VERSION} (${HELL_GIT_HASH}${HELL_GIT_DIRTY})")
