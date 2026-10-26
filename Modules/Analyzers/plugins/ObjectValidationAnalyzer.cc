@@ -13,9 +13,13 @@
 // fills profiles of the scale factor versus pt and eta as a check of what
 // was applied.
 //
+// `channel` restricts the events to those whose leading selected lepton (from `leptons`) is a muon
+// ("mu") or an electron ("el"), so that the Muon primary dataset is compared with the muon channel of
+// the simulation and EGamma with the electron channel.
+//
 // python:
-//   process.objVal = Module("ObjectValidationAnalyzer", muons="goodMuons", electrons="goodElectrons",
-//                           jets="bTags", met="jetVar:met", eventInfo="eventInfo")
+//   process.objValMu = Module("ObjectValidationAnalyzer", channel="mu", leptons="leptons", muons="goodMuons",
+//                             electrons="goodElectrons", jets="bTags", met="jetVar:met", eventInfo="eventInfo")
 #include "Core/interface/ModuleFactory.h"
 #include "DataFormats/interface/DataFormats.h"
 #include <TH1D.h>
@@ -35,6 +39,10 @@ class ObjectValidationAnalyzer : public Analyzer {
     met_ = ps.has("met") ? ctx.consumesProduct(ps.get<std::string>("met")) : "";
     info_ = ps.has("eventInfo") ? ctx.consumesProduct(ps.get<std::string>("eventInfo")) : "";
     maxPt_ = ps.get<double>("maxPt", 300.0);
+    channel_ = ps.get("channel", "all");
+    if (channel_ != "all" && channel_ != "mu" && channel_ != "el") throw std::runtime_error("ObjectValidationAnalyzer: channel must be all, mu or el");
+    leptons_ = ps.has("leptons") ? ctx.consumesProduct(ps.get<std::string>("leptons")) : "";
+    if (channel_ != "all" && leptons_.empty()) throw std::runtime_error("ObjectValidationAnalyzer: channel=" + channel_ + " needs the merged `leptons` collection");
     HistDir d = ctx.hists();
     if (!muons_.empty()) bookLepton(d.subdir("muons"), "muon", 2.4);
     if (!electrons_.empty()) bookLepton(d.subdir("electrons"), "electron", 2.5);
@@ -43,6 +51,12 @@ class ObjectValidationAnalyzer : public Analyzer {
   }
 
   void analyze(const Event& ev) override {
+    if (channel_ != "all") {
+      const auto& leps = ev.get<LeptonCollection>(leptons_);
+      if (leps.empty()) return;
+      if (channel_ == "mu" && !leps[0].isMuon()) return;
+      if (channel_ == "el" && !leps[0].isElectron()) return;
+    }
     const double w = ev.weight;
     if (!muons_.empty()) fillLeptons(ev.get<MuonCollection>(muons_), "muons", w);
     if (!electrons_.empty()) fillLeptons(ev.get<ElectronCollection>(electrons_), "electrons", w);
@@ -134,7 +148,7 @@ class ObjectValidationAnalyzer : public Analyzer {
     book(d, "event", "rho", "#rho", 50, 0, 50, false);
   }
 
-  std::string muons_, electrons_, jets_, met_, info_;
+  std::string muons_, electrons_, jets_, met_, info_, leptons_, channel_;
   double maxPt_;
   std::map<std::string, Pair> hists_;
   std::map<std::string, TProfile*> sfVsPt_, sfVsEta_;

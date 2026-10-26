@@ -57,9 +57,12 @@ if options.model:
 if options.quickHists:
     process.quick = Module("KinematicsAnalyzer", jets="bTags", leptons="leptons", met="jetVar:met")
     path += ["quick"]
-# Object validation (data/MC agreement of the reconstruction and of the scale factors): after the weights.
-process.objVal = Module("ObjectValidationAnalyzer", muons="goodMuons", electrons="goodElectrons", jets="bTags", met="jetVar:met", eventInfo="eventInfo")
-path += ["objVal"]
+# Object validation (data/MC agreement of the reconstruction and of the scale factors), after the weights,
+# per channel: the Muon primary dataset is compared with objValMu, EGamma with objValEl.
+for ch in ("mu", "el"):
+    setattr(process, f"objVal{ch.capitalize()}", Module("ObjectValidationAnalyzer", channel=ch, leptons="leptons", muons="goodMuons",
+                                                        electrons="goodElectrons", jets="bTags", met="jetVar:met", eventInfo="eventInfo"))
+path += ["objValMu", "objValEl"]
 process.tree = Module("TreeWriter", treeName="Events", keep=["run", "luminosityBlock", "event", "HLT_IsoMu24", "HLT_Ele30_WPTight_Gsf"],
                       products=products)
 path += ["tree"]

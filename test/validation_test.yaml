@@ -1,6 +1,6 @@
 era: "2022"
 input: test/out/trees/2022
-directory: objVal
+directory: objValMu
 processes:
   - {name: tch,   label: "t-channel", color: "#e42536", samples: [TbarBQtoLNu_tch]}
   - {name: tt,    label: "t#bar{t}",  color: "#f89c20", samples: [TTtoLNu2Q]}

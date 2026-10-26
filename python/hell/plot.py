@@ -52,6 +52,8 @@ def stack_with_ratio(name, data_h, mc_hists, labels, colors, xlabel, text, out_p
     lab = ROOT.TLatex(); lab.SetNDC(); lab.SetTextFont(42); lab.SetTextSize(0.04)
     if region_label:
         lab.DrawLatex(0.19, 0.735, region_label)
+    if normalize_to_data and data_h is not None:
+        lab.SetTextSize(0.03); lab.DrawLatex(0.19, 0.69, "MC scaled to the data yield")
     ROOT.gPad.RedrawAxis()
     c.cd(2)
     if info_text:  # metrics line in the free space of the ratio pad

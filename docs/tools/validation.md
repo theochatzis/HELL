@@ -2,7 +2,9 @@
 
 Two pieces:
 
-1. `ObjectValidationAnalyzer` (module, in `analysis_cfg.py` as `objVal`, placed after the weight producers):
+1. `ObjectValidationAnalyzer` (module, in `analysis_cfg.py` as `objValMu` and `objValEl`, placed after the weight
+   producers, each restricted with `channel=` to events whose leading lepton is a muon or an electron, so that the
+   Muon primary dataset is compared with the muon channel and EGamma with the electron channel):
    per collection the distributions a POG recommendation touches (pt, eta, phi, isolation, dxy, dz, SIP3D,
    charge, id level, isolation category, multiplicity; jets: b-tag score and working point, jet id, raw factor,
    lepton cleaning dR, leading pt, HT; event: MET, vertices, rho). Each weighted histogram has a `_noSF` twin
@@ -14,7 +16,8 @@ Two pieces:
    p-value (effective sample sizes), maximum |pull| and the number of bins with |pull| > 3. The markdown report
    (`validation.md`) shows the nominal and `_noSF` metrics side by side; a distribution is flagged when
    KS p < 0.01 or a bin pulls beyond 3 sigma. `normalizeShapes: true` compares shapes (MC scaled to the data
-   yield) and reports the absolute yield ratio separately; set it to false to test the normalisation itself.
+   yield, and the plot says so) and reports the absolute yield ratio separately; set it to false to test the
+   normalisation itself. `directory:` selects the channel (`objValMu` or `objValEl`).
 
 How to read it: after a scale factor is introduced (lepton ID/ISO/trigger, b-tagging, pileup), the nominal
 columns should improve with respect to the `_noSF` ones in the variables the factor depends on (pt, eta,

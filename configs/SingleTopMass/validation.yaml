@@ -1,14 +1,14 @@
 # Data/MC validation of objects and scale factors.  hell validate configs/SingleTopMass/validation.yaml
 era: "2022"
-input: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022     # hell-run outputs with the objVal/ histograms
-directory: objVal
+input: /eos/user/t/tchatzis/Analysis/HELL_output/trees/2022     # hell-run outputs with the objVal*/ histograms
+directory: objValMu          # histogram directory: objValMu (muon channel) or objValEl (electron channel)
 processes:
   - {name: tch,   label: "t-channel", color: "#e42536", samples: [TBbarQtoLNu_tch, TbarBQtoLNu_tch]}
   - {name: tt,    label: "t#bar{t}",  color: "#f89c20", samples: [TTtoLNu2Q, TTto2L2Nu]}
   - {name: tw,    label: "tW",        color: "#964a8b", samples: [TWminustoLNu2Q, TbarWplustoLNu2Q]}
   - {name: wjets, label: "W+jets",    color: "#5790fc", samples: [WtoLNu_2Jets]}
   - {name: dy,    label: "Drell-Yan", color: "#7a21dd", samples: [DYto2L_2Jets_MLL50]}
-  - {name: data,  label: "Data",      color: "#000000", isData: true, samples: [Muon_2022C, Muon_2022D, EGamma_2022C, EGamma_2022D]}
+  - {name: data,  label: "Data",      color: "#000000", isData: true, samples: [Muon_2022C, Muon_2022D]}   # EGamma_* with directory objValEl
 histograms: ["muons/*", "electrons/*", "jets/*", "event/*"]
 normalizeShapes: true
 output: validation/2022
