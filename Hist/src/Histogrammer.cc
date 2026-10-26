@@ -107,8 +107,12 @@ void Histogrammer::processFiles(const HistProcess& p, const HistSample& s, const
     // Enable only the branches used.
     tree->SetBranchStatus("*", 0);
     auto enable = [&](TTreeFormula* f) { if (!f) return; for (int i = 0; i < f->GetNcodes(); ++i) if (TLeaf* l = f->GetLeaf(i)) tree->SetBranchStatus(l->GetBranch()->GetName(), 1); };
-    for (auto& f : regionSel) enable(f.get()); for (auto& f : regionW) enable(f.get()); for (auto& f : varF) enable(f.get());
-    enable(procCut.get()); for (auto& f : systUp) enable(f.get()); for (auto& f : systDown) enable(f.get());
+    for (auto& f : regionSel) enable(f.get());
+    for (auto& f : regionW) enable(f.get());
+    for (auto& f : varF) enable(f.get());
+    enable(procCut.get());
+    for (auto& f : systUp) enable(f.get());
+    for (auto& f : systDown) enable(f.get());
 
     const long long n = tree->GetEntries();
     for (long long i = 0; i < n; ++i) {
@@ -167,6 +171,9 @@ int Histogrammer::run() {
     hist(r.name, v.name, p.name, "");
     if (!p.isData) for (const auto& sy : systematics_) { hist(r.name, v.name, p.name, sy.name + "Up"); hist(r.name, v.name, p.name, sy.name + "Down"); }
   }
+  // Negative yields (few events with large negative generator weights) break fits: say so loudly.
+  for (const auto& kv : hists_)
+    if (kv.second->Integral() < 0) HELL_WARN("hist") << kv.first << " has a negative integral (" << kv.second->Integral() << "): too few events or missing positive reweighting";
   std::unique_ptr<TFile> out(TFile::Open(output_.c_str(), "RECREATE"));
   if (!out || out->IsZombie()) throw std::runtime_error("cannot create " + output_);
   for (auto& kv : hists_) {

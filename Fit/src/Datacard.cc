@@ -90,11 +90,15 @@ std::vector<std::string> TemplateDatacard::write() {
     card << "imax 1 number of channels\njmax " << processes.size() - 1 << " number of backgrounds\nkmax * number of nuisance parameters\n";
     card << "---------------\nshapes * " << region << " " << baseName(stem) << ".root $PROCESS $PROCESS_$SYSTEMATIC\n---------------\n";
     card << "bin " << region << "\nobservation " << std::fixed << std::setprecision(3) << obs << "\n---------------\n";
-    card << std::left << std::setw(28) << "bin"; for (size_t i = 0; i < processes.size(); ++i) card << std::setw(16) << region; card << "\n";
-    card << std::setw(28) << "process"; for (const auto& p : processes) card << std::setw(16) << p; card << "\n";
-    card << std::setw(28) << "process";
-    for (size_t i = 0; i < processes.size(); ++i) card << std::setw(16) << (static_cast<int>(i) - static_cast<int>(signals.size()) + 1); card << "\n";
-    card << std::setw(28) << "rate"; for (double r : rates) card << std::setw(16) << std::setprecision(4) << r; card << "\n---------------\n";
+    card << std::left << std::setw(28) << "bin";
+    for (size_t i = 0; i < processes.size(); ++i) card << std::setw(16) << region;
+    card << "\n" << std::setw(28) << "process";
+    for (const auto& p : processes) card << std::setw(16) << p;
+    card << "\n" << std::setw(28) << "process";
+    for (size_t i = 0; i < processes.size(); ++i) card << std::setw(16) << (static_cast<int>(i) - static_cast<int>(signals.size()) + 1);
+    card << "\n" << std::setw(28) << "rate";
+    for (double r : rates) card << std::setw(16) << std::setprecision(4) << r;
+    card << "\n---------------\n";
     if (cfg_.contains("normalisation"))
       for (auto it = cfg_["normalisation"].begin(); it != cfg_["normalisation"].end(); ++it) {
         const double value = it.value().at("value");
@@ -204,11 +208,15 @@ std::string ParametricWorkspace::write() {
   for (const auto& b : backgrounds) card << "shapes " << b << " " << region << " " << baseName(output) << ".root w:" << b << "_pdf\n";
   card << "shapes data_obs " << region << " " << baseName(output) << ".root w:data_obs\n---------------\n";
   card << "bin " << region << "\nobservation -1\n---------------\n";
-  card << std::left << std::setw(20) << "bin"; card << std::setw(16) << region; for (size_t i = 0; i < backgrounds.size(); ++i) card << std::setw(16) << region; card << "\n";
-  card << std::setw(20) << "process" << std::setw(16) << signal; for (const auto& b : backgrounds) card << std::setw(16) << b; card << "\n";
-  card << std::setw(20) << "process" << std::setw(16) << 0; for (size_t i = 0; i < backgrounds.size(); ++i) card << std::setw(16) << i + 1; card << "\n";
-  card << std::setw(20) << "rate" << std::setw(16) << std::setprecision(4) << hSig->Integral();
-  for (const auto& b : backgrounds) card << std::setw(16) << getHist(*in, region + "/" + var + "/" + b)->Integral(); card << "\n---------------\n";
+  card << std::left << std::setw(20) << "bin" << std::setw(16) << region;
+  for (size_t i = 0; i < backgrounds.size(); ++i) card << std::setw(16) << region;
+  card << "\n" << std::setw(20) << "process" << std::setw(16) << signal;
+  for (const auto& b : backgrounds) card << std::setw(16) << b;
+  card << "\n" << std::setw(20) << "process" << std::setw(16) << 0;
+  for (size_t i = 0; i < backgrounds.size(); ++i) card << std::setw(16) << i + 1;
+  card << "\n" << std::setw(20) << "rate" << std::setw(16) << std::setprecision(4) << hSig->Integral();
+  for (const auto& b : backgrounds) card << std::setw(16) << getHist(*in, region + "/" + var + "/" + b)->Integral();
+  card << "\n---------------\n";
   if (cfg_.contains("normalisation"))
     for (auto it = cfg_["normalisation"].begin(); it != cfg_["normalisation"].end(); ++it) {
       const double value = it.value().at("value");

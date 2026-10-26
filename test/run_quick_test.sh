@@ -22,8 +22,10 @@ done
 
 step() { echo; echo "[HELL] ===== $* ====="; }
 step "1. skims"
+# W+jets (aMC@NLO, negative weights) needs more events than the others for positive yields in the small regions
 for s in "${!FILES[@]}"; do
-  hell run configs/SingleTopMass/skim_cfg.py sample=$s era=2022 inputFiles=${FILES[$s]} outputFile=$OUT/skims/$s.root maxEvents=60000 --tag $s | grep -E "wrote|forged|ERROR"
+  n=60000; [ $s = WtoLNu_2Jets ] && n=300000
+  hell run configs/SingleTopMass/skim_cfg.py sample=$s era=2022 inputFiles=${FILES[$s]} outputFile=$OUT/skims/$s.root maxEvents=$n --tag $s | grep -E "wrote|forged|ERROR"
 done
 step "2. analysis trees: nominal and JES variations"
 for s in "${!FILES[@]}"; do
