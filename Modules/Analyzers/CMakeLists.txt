@@ -1,1 +1,1 @@
-hell_add_plugin(Analyzers SOURCES plugins/GenDistributionAnalyzer.cc plugins/KinematicsAnalyzer.cc plugins/ObjectValidationAnalyzer.cc)
+hell_add_plugin(Analyzers)   # all plugins/*.cc

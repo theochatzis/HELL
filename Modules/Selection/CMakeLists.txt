@@ -1,1 +1,1 @@
-hell_add_plugin(Selection SOURCES plugins/ObjectSelectors.cc plugins/EventFilters.cc)
+hell_add_plugin(Selection)   # all plugins/*.cc

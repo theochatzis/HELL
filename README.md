@@ -38,15 +38,15 @@ On lxplus (EL9). The environment is an LCG view from cvmfs (ROOT 6.36, gcc 13, P
 ```bash
 git clone <this repository> HELL
 cd HELL
-source env/setup.sh              # HELL_ENV=lcg (default) or HELL_ENV=native
-mkdir -p build && cd build
-cmake .. && make -j8
-cd ..
-hell version                     # python + C++ versions
-hell pray                        # end-to-end quick test (needs /eos/cms, ~3 minutes)
+source env/setup.sh              # the "cmsenv": loads the LCG view and HELL into this shell (with the banner)
+hell env                         # what is loaded, build state, git HEAD vs built version
+hell build                       # the "scram b": cmake + make in build/ (incremental; --clean, -j N, --type Debug)
+hell pray                        # end-to-end quick test (needs /eos/cms, ~2 minutes)
 ```
-Always `source env/setup.sh` in a new shell (it sets `HELL_BASE`, the plugin path, `PATH`, `PYTHONPATH`).
-Re-run `cmake ..` after a `git commit` so that the git hash written into the output files (provenance) is current.
+Always `source env/setup.sh` in a new shell (a program cannot change the shell it runs in, which is why
+CMSSW's `cmsenv` is an alias). `HELL_ENV=lcg` (default) or `native`; `HELL_QUIET=1` skips the banner.
+`hell build` re-runs cmake by itself after a commit so that the git hash written into the output files
+(provenance) is current.
 
 For CRAB and remote files: `source /cvmfs/cms.cern.ch/crab3/crab.sh; voms-proxy-init --voms cms` inside a CMSSW area.
 For Combine: set `HELL_COMBINE_SETUP` to a script that puts `combine` on the PATH (standalone Combine or a CMSSW area).
@@ -91,6 +91,9 @@ Every command and every executable answers `--help` with the options **and an ex
 Config files answer `hell run cfg.py help` with their options.
 
 ## How it works
+If you know CMSSW you know HELL: `source env/setup.sh` is `cmsenv`, `hell build` is `scram b`, `hell run cfg.py`
+is `cmsRun`, modules are producers, filters and analyzers exchanging products by label, a package's
+`CMakeLists.txt` is its `BuildFile.xml`. The full dictionary is in [docs/design.md](docs/design.md).
 - A **job** is a python config that builds a `Process`: input files, output file, job context (data/MC, era,
   sample, active systematic variation) and an ordered **path** of **modules**. The python is turned into JSON and
   executed by the C++ event loop `hell-run` (`Core/interface/Forge.h`).

@@ -1,1 +1,1 @@
-hell_add_plugin(Output SOURCES plugins/TreeWriter.cc)
+hell_add_plugin(Output)   # all plugins/*.cc

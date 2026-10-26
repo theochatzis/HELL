@@ -1,1 +1,1 @@
-hell_add_plugin(Weights SOURCES plugins/WeightProducers.cc)
+hell_add_plugin(Weights)   # all plugins/*.cc

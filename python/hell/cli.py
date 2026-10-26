@@ -143,6 +143,15 @@ def build_parser():
     va.add_argument("config", help="YAML validation configuration"); va.add_argument("-o", "--output", default=None)
     va.add_argument("--max-hists", type=int, default=None, help="only the first N histograms (tests)")
 
+    bu = sub(s, "build", "Configure (cmake) and compile the C++ part. Reconfigures automatically after a commit so the provenance hash is current.",
+             "  hell build                 # incremental\n  hell build --clean -j 16   # from scratch\n  hell build --type Debug --verbose\n  hell build --target HellCore")
+    bu.add_argument("-j", "--jobs", type=int, default=None); bu.add_argument("--clean", action="store_true", help="remove the build directory first")
+    bu.add_argument("--reconfigure", action="store_true", help="re-run cmake"); bu.add_argument("--type", default=None, help="CMake build type (RelWithDebInfo, Debug, Release)")
+    bu.add_argument("--target", default=None, help="make target"); bu.add_argument("--verbose", action="store_true", help="full cmake/make output")
+
+    en = sub(s, "env", "Report the environment (ROOT, python, torch, build state, git HEAD vs built version). The environment is loaded with `source env/setup.sh`.",
+             "  source env/setup.sh        # load (a command cannot change your shell)\n  hell env                   # what is loaded and whether the build is current")
+
     lm = sub(s, "list-modules", "List the available C++ module types.", "  hell list-modules")
     lm.add_argument("--json", action="store_true")
 
@@ -321,6 +330,17 @@ def cmd_validate(a):
     return 0
 
 
+def cmd_build(a):
+    from hell.build import build
+    return build(a.jobs, a.clean, a.reconfigure, a.type, a.target, a.verbose)
+
+
+def cmd_env(a):
+    from hell.build import env_report
+    print(env_report())
+    return 0
+
+
 def cmd_list_modules(a):
     from hell.runner import find_executable
     return subprocess.call([find_executable("hell-run"), "--list-modules"] + (["--json"] if a.json else []))
@@ -383,14 +403,15 @@ def cmd_version(a):
 
 COMMANDS = {"run": cmd_run, "skim": cmd_run, "hist": cmd_hist, "unleash-systematics": cmd_unleash, "plot": cmd_plot, "fit": cmd_fit,
             "train": cmd_train, "samples": cmd_samples, "submit": cmd_submit, "merge": cmd_merge, "bookkeep": cmd_bookkeep,
-            "navigate": cmd_navigate, "validate": cmd_validate, "list-modules": cmd_list_modules, "dump": cmd_dump, "issue": cmd_issue, "pray": cmd_pray, "version": cmd_version}
+            "navigate": cmd_navigate, "validate": cmd_validate, "build": cmd_build, "env": cmd_env, "list-modules": cmd_list_modules, "dump": cmd_dump, "issue": cmd_issue, "pray": cmd_pray, "version": cmd_version}
 
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     parser = build_parser()
     if not argv:
-        print("[HELL] Welcome to HELL.\n")
+        from hell import banner
+        print(banner() + "\n")
         parser.print_help()
         return 0
     # `hell run cfg.py help` -> config options help

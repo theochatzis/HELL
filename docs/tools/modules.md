@@ -1,8 +1,10 @@
 # Writing a module
 
-A module is a C++ class in `Modules/<Package>/plugins/*.cc`, registered with `HELL_REGISTER_MODULE`. The package's
-`CMakeLists.txt` lists the sources: `hell_add_plugin(Package SOURCES plugins/A.cc plugins/B.cc)`. New packages
-are picked up automatically (a directory with a `CMakeLists.txt` under `Modules/`).
+A module is a C++ class in `Modules/<Package>/plugins/*.cc`, registered with `HELL_REGISTER_MODULE`. Every
+`plugins/*.cc` of a package is compiled into its plugin library (`hell_add_plugin(Package)` in the package's
+`CMakeLists.txt`, the HELL equivalent of a `BuildFile.xml`; add `DEPENDS HellX` for extra libraries). A new
+file is picked up by the next `hell build` with nothing to edit; a new package is a directory under `Modules/`
+with that one-line `CMakeLists.txt`. Only what changed is recompiled.
 
 ```cpp
 // Modules/Top/plugins/LeadingJetAnalyzer.cc

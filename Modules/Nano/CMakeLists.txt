@@ -1,1 +1,1 @@
-hell_add_plugin(Nano SOURCES plugins/NanoReaders.cc)
+hell_add_plugin(Nano)   # all plugins/*.cc

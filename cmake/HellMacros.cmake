@@ -11,8 +11,13 @@ function(hell_add_library NAME)
   set_target_properties(Hell${NAME} PROPERTIES OUTPUT_NAME "Hell${NAME}")
 endfunction()
 
+# Without SOURCES every plugins/*.cc of the package is compiled (new files are picked up by the next
+# `hell build`, CONFIGURE_DEPENDS re-globs at build time, no CMake edit needed).
 function(hell_add_plugin NAME)
   cmake_parse_arguments(ARG "" "" "SOURCES;DEPENDS" ${ARGN})
+  if(NOT ARG_SOURCES)
+    file(GLOB ARG_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/plugins/*.cc)
+  endif()
   add_library(Hell${NAME}Plugin MODULE ${ARG_SOURCES})
   target_include_directories(Hell${NAME}Plugin PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}/generated)
   target_link_libraries(Hell${NAME}Plugin PUBLIC HellCore HellDataFormats ${ARG_DEPENDS})

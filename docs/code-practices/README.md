@@ -16,7 +16,7 @@ These are the rules we follow, in simple sentences.
 10. Every executable and every `hell` subcommand has `--help` that shows the usage **and an example**.
 
 ## C++
-1. C++17, compiled with `-Wall -Wextra -Wpedantic`; no warnings in our code.
+1. C++17, compiled with `-Wall -Wextra -Wpedantic`; no warnings in our code (`hell build` prints them).
 2. Headers in `interface/`, implementations in `src/`, plugins in `plugins/`. Include with the repository root: `#include "Core/interface/Event.h"`.
 3. A module reads its parameters in the constructor, with explicit defaults, and declares what it consumes and produces there. Nothing is looked up for the first time inside the event loop.
 4. Only `Nano*Reader` modules touch NanoAOD branch names. Everything else works on the HELL data model.

@@ -1,1 +1,1 @@
-hell_add_plugin(Top SOURCES plugins/TopReconstructor.cc plugins/SingleTopVariables.cc)
+hell_add_plugin(Top)   # all plugins/*.cc

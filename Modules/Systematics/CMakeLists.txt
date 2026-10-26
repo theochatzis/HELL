@@ -1,1 +1,1 @@
-hell_add_plugin(Systematics SOURCES plugins/JetVariation.cc)
+hell_add_plugin(Systematics)   # all plugins/*.cc
