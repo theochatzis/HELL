@@ -162,7 +162,10 @@ def build_parser():
             "  hell issue new \"JES variation does not propagate to MET\" --area systematics\n  hell issue list")
     i.add_argument("action", choices=["new", "list"]); i.add_argument("title", nargs="?", default=None); i.add_argument("--area", default="general")
 
-    sub(s, "pray", "Run the quick end-to-end test (skim -> analysis tree -> histograms -> datacards) and hope.", "  hell pray")
+    pr = sub(s, "pray", "Run the quick end-to-end test (test/run_quick_test.sh) and hope. Steps can be selected; later steps use the outputs of earlier ones in test/out.",
+             "  hell pray                  # everything, from a clean test/out\n  hell pray skim             # only the skims\n  hell pray hist validate    # histograms and validation on the existing trees\n  hell pray --list")
+    pr.add_argument("steps", nargs="*", choices=["skim", "trees", "bookkeep", "hist", "validate", "fit", "ml", "navigate"], help="steps to run (default all)")
+    pr.add_argument("--list", action="store_true", help="list the steps")
     sub(s, "version", "Print the version and build information.", "  hell version")
     return p
 
@@ -385,8 +388,12 @@ def cmd_issue(a):
 
 
 def cmd_pray(a):
-    log("Praying... running test/run_quick_test.sh")
-    rc = subprocess.call(["bash", os.path.join(HELL_BASE, "test", "run_quick_test.sh")])
+    steps = ["skim", "trees", "bookkeep", "hist", "validate", "fit", "ml", "navigate"]
+    if a.list:
+        print("steps of test/run_quick_test.sh (in order): " + " ".join(steps))
+        return 0
+    log("Praying... running test/run_quick_test.sh " + " ".join(a.steps))
+    rc = subprocess.call(["bash", os.path.join(HELL_BASE, "test", "run_quick_test.sh")] + a.steps)
     log("Your prayers were heard. All forged." if rc == 0 else "The forge went cold. Check the output above.", "INFO" if rc == 0 else "ERROR")
     return rc
 
