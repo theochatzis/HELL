@@ -23,4 +23,7 @@ export PYTHONDONTWRITEBYTECODE=1
 # Standalone Higgs Combine: point HELL_COMBINE_SETUP to a script that puts `combine` on the PATH
 # (e.g. a CMSSW area with HiggsAnalysis/CombinedLimit, or a conda/pip install). `hell fit` sources it.
 export HELL_COMBINE_SETUP="${HELL_COMBINE_SETUP:-}"
+if [ -z "${HELL_QUIET:-}" ]; then
+  source "$HELL_BASE/env/banner.sh" && hell_banner
+fi
 echo "[HELL] Welcome to HELL. base=$HELL_BASE env=$HELL_ENV root=$(root-config --version 2>/dev/null || echo none)"
