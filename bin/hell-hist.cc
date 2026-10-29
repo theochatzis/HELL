@@ -1,5 +1,6 @@
 // hell-hist: config-driven histogramming of HELL analysis trees.
 #include "CliHelp.h"
+#include "Core/interface/Logger.h"
 #include "Core/interface/ParameterSet.h"
 #include "Core/interface/Version.h"
 #include "Hist/interface/Histogrammer.h"
@@ -11,6 +12,7 @@ int main(int argc, char** argv) {
     return hell::printHelp("hell-hist " HELL_VERSION, "hell-hist hist_config.json [-o out.root] [-n N]",
                            "  -o FILE      output file (overrides the config)\n  -n N         at most N events per sample (tests)\n",
                            "  hell-hist work/hist_singletop.json -o hists.root\n  (normally called through `hell hist configs/SingleTopMass/hist.yaml`)");
+  hell::installRootMessageFilter();
   const auto pos = cli.positionals({"-o", "-n"});
   if (pos.empty()) { std::cerr << "[HELL] ERROR: no configuration file given\n"; return 1; }
   try {

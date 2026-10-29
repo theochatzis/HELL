@@ -1,6 +1,8 @@
 #include "Core/interface/Logger.h"
+#include <TError.h>
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 
 namespace hell {
 namespace {
@@ -27,4 +29,15 @@ std::string Logger::levelName(LogLevel l) {
     default: return "SILENT";
   }
 }
+namespace {
+void filteringHandler(int level, Bool_t abort, const char* location, const char* msg) {
+  if (level == kWarning && location && std::strcmp(location, "TClass::Init") == 0 && msg &&
+      (std::strstr(msg, "no dictionary for class edm::") || std::strstr(msg, "no dictionary for class pair<edm::")))
+    return;
+  DefaultErrorHandler(level, abort, location, msg);
+}
+}  // namespace
+
+void installRootMessageFilter() { SetErrorHandler(filteringHandler); }
+
 }  // namespace hell

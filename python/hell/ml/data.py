@@ -50,8 +50,8 @@ def sample_files(input_dir, sample):
 
 def read_arrays(files, tree, expressions, selection, max_events=-1):
     """Evaluate expressions with ROOT (TTree::Draw syntax works for any HELL tree)."""
-    import ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     cols = {e: [] for e in expressions}
     n_total = 0
     for path in files:

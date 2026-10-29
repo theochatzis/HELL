@@ -1,5 +1,6 @@
 // hell-datacard: write Combine datacards (template or parametric) from HELL histograms.
 #include "CliHelp.h"
+#include "Core/interface/Logger.h"
 #include "Core/interface/ParameterSet.h"
 #include "Core/interface/Version.h"
 #include "Fit/interface/Datacard.h"
@@ -11,6 +12,7 @@ int main(int argc, char** argv) {
     return hell::printHelp("hell-datacard " HELL_VERSION, "hell-datacard fit_config.json [--parametric]",
                            "  --parametric   build a RooFit workspace with an mtop-dependent signal model instead of templates\n",
                            "  hell-datacard work/fit_singletop.json\n  hell-datacard work/fit_singletop.json --parametric\n  (normally called through `hell fit --datacards`)");
+  hell::installRootMessageFilter();
   const auto pos = cli.positionals({});
   if (pos.empty()) { std::cerr << "[HELL] ERROR: no configuration file given\n"; return 1; }
   try {

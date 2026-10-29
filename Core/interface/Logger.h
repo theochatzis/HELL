@@ -45,6 +45,11 @@ class LogStream {
   std::ostringstream buffer_;
 };
 
+// Installs a ROOT message handler that drops the harmless "no dictionary for class edm::..." warnings
+// that ROOT prints when opening NanoAOD files (their MetaData/ParameterSets trees hold CMSSW classes we
+// never read) and forwards every other ROOT message to the default handler.
+void installRootMessageFilter();
+
 }  // namespace hell
 
 #define HELL_DEBUG(ctx) hell::LogStream(hell::LogLevel::Debug, ctx)

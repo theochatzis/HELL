@@ -7,7 +7,8 @@ TYPES = ["Candidate", "Jet", "Lepton", "Muon", "Electron", "MET", "GenParticle",
 
 
 def load_library():
-    import ROOT
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     lib = os.path.join(HELL_BUILD, "lib", "libHellDataFormats.so")
     if not os.path.exists(lib):
         raise HellError(f"{lib} not found: build HELL first")

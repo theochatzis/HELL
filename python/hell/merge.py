@@ -8,7 +8,8 @@ from hell import HellError, log, warn
 
 
 def read_counts(path):
-    import ROOT
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     f = ROOT.TFile.Open(path)
     if not f or f.IsZombie():
         raise HellError(f"cannot open {path}")
@@ -24,8 +25,8 @@ def read_counts(path):
 
 
 def merge(inputs, output, force=False):
-    import ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     if os.path.exists(output) and not force:
         raise HellError(f"{output} exists (use --force)")
     os.makedirs(os.path.dirname(os.path.abspath(output)), exist_ok=True)

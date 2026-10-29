@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     return hell::printHelp("hell-run " HELL_VERSION " (" HELL_GIT_HASH ")", "hell-run config.json [options]", options,
                            "  hell-run work/skim_singletop_cfg.json -n 1000 -o test_skim.root\n"
                            "  (normally called through `hell run configs/SingleTopMass/skim_cfg.py sample=... maxEvents=1000`)");
+  hell::installRootMessageFilter();
   hell::loadDataFormats();
   if (cli.has("--version")) { std::cout << "HELL " << HELL_VERSION << " " << HELL_GIT_HASH << "\n"; return 0; }
   if (cli.has("--list-modules")) {

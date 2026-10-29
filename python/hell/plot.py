@@ -77,8 +77,8 @@ def stack_with_ratio(name, data_h, mc_hists, labels, colors, xlabel, text, out_p
 
 
 def plot(hist_file, outdir="plots", regions=None, variables=None, fmt="png", logy=False, lumi_label="", extra="Preliminary"):
-    import ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     tdr.load()
     f = ROOT.TFile.Open(hist_file)
     if not f or f.IsZombie():

@@ -19,8 +19,8 @@ def load():
     global _loaded
     if _loaded is not None:
         return _loaded
-    import ROOT
-    ROOT.gROOT.SetBatch(True)
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     lib = os.path.join(HELL_BUILD, "lib", "libHellPlot.so")
     if not os.path.exists(lib):
         raise HellError(f"{lib} not found: build HELL first")

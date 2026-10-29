@@ -7,8 +7,8 @@ from hell import HellError
 
 
 def open_file(path):
-    import ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kError
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     f = ROOT.TFile.Open(path)
     if not f or f.IsZombie():
         raise HellError(f"cannot open {path}")
