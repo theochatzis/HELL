@@ -26,7 +26,7 @@ import subprocess
 
 import yaml
 
-from hell import HELL_BASE, HellError, log, warn
+from hell import HELL_BASE, HellError, generated_by, log, warn
 
 SAMPLES_DIR = os.path.join(HELL_BASE, "samples")
 FILES_DIR = os.path.join(SAMPLES_DIR, "files")
@@ -49,6 +49,12 @@ def load_era(era):
         data = yaml.safe_load(f) or {}
     data.setdefault("era", era)
     data.setdefault("samples", {})
+    if not data.get("goldenJSON"):   # fall back to the master certification list
+        try:
+            from hell.lumi import golden_json
+            data["goldenJSON"] = golden_json(era)
+        except HellError:
+            pass
     for name, s in data["samples"].items():
         s.setdefault("name", name)
         s.setdefault("isData", False)
@@ -76,7 +82,10 @@ def cross_section(sample):
     if x not in table:
         raise HellError(f"no cross section '{x}' in samples/xsec.yaml for sample {sample['name']}")
     entry = table[x]
-    return float(entry["xsec"] if isinstance(entry, dict) else entry)
+    value = entry["xsec"] if isinstance(entry, dict) else entry
+    if value is None:
+        raise HellError(f"cross section '{x}' in samples/xsec.yaml is not filled yet (sample {sample['name']})")
+    return float(value)
 
 
 def find_sample(name, era=None):
@@ -95,15 +104,30 @@ def filelist_path(era, name):
     return os.path.join(FILES_DIR, era, f"{name}.txt")
 
 
+def _dasgoclient():
+    import shutil
+    exe = shutil.which("dasgoclient") or "/cvmfs/cms.cern.ch/common/dasgoclient"
+    if not os.path.exists(exe):
+        raise HellError("dasgoclient not found: source /cvmfs/cms.cern.ch/cmsset_default.sh or a CMSSW environment")
+    return exe
+
+
+def das(query, instance=None):
+    """Run a dasgoclient query and return the output lines. Needs a VOMS proxy (voms-proxy-init --voms cms --rfc)."""
+    full = query + (f" instance={instance}" if instance else "")
+    # the cvmfs dasgoclient wrapper runs the system python: the LCG PYTHONHOME/PYTHONPATH must not leak into it
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONHOME", "PYTHONPATH")}
+    result = subprocess.run([_dasgoclient(), "--query", full], capture_output=True, text=True, env=env)
+    if result.returncode != 0 or "X509_USER_PROXY" in result.stderr:
+        message = (result.stderr or result.stdout).strip()
+        if "X509" in message or "proxy" in message.lower():
+            raise HellError("DAS needs a grid proxy: run `voms-proxy-init --voms cms --rfc` and export X509_USER_PROXY if it is not in /tmp")
+        raise HellError(f"dasgoclient failed for '{full}': {message}")
+    return sorted(line.strip() for line in result.stdout.splitlines() if line.strip())
+
+
 def _das_files(dataset, instance=None):
-    q = f"file dataset={dataset}" + (f" instance={instance}" if instance else "")
-    try:
-        out = subprocess.run(["dasgoclient", "--query", q], capture_output=True, text=True, check=True).stdout
-    except FileNotFoundError:
-        raise HellError("dasgoclient not found: source a CMSSW environment or /cvmfs/cms.cern.ch/cmsset_default.sh")
-    except subprocess.CalledProcessError as e:
-        raise HellError(f"dasgoclient failed for {dataset}: {e.stderr.strip()}")
-    return sorted(l.strip() for l in out.splitlines() if l.strip())
+    return das(f"file dataset={dataset}", instance)
 
 
 def scan(sample, redirector="root://xrootd-cms.infn.it/", prefer_eos=True, force=False):
@@ -157,18 +181,89 @@ def resolve_inputs(input_files, sample_name, max_files=-1, first=0, era=None):
 
 
 def das_query(pattern, instance=None):
-    q = f"dataset={pattern}" + (f" instance={instance}" if instance else "")
-    try:
-        out = subprocess.run(["dasgoclient", "--query", q], capture_output=True, text=True, check=True).stdout
-    except FileNotFoundError:
-        raise HellError("dasgoclient not found: source a CMSSW environment or /cvmfs/cms.cern.ch/cmsset_default.sh")
-    return sorted(l.strip() for l in out.splitlines() if l.strip())
+    return das(f"dataset={pattern}", instance)
+
+
+def is_data_dataset(dataset):
+    return dataset.rstrip("/").endswith("/NANOAOD")
 
 
 def suggest_name(dataset):
-    """A readable sample name from a DAS dataset name: primary dataset without tune/energy/generator tail."""
-    primary = dataset.strip("/").split("/")[0]
+    """A readable sample name from a DAS dataset name.
+    MC: the primary dataset without the tune/energy/generator tail (TbarBQtoLNu-t-channel-4FS -> TbarBQtoLNu_t_channel_4FS).
+    Data: <primary dataset>_<run era> (/Muon/Run2022C-22Sep2023-v1/NANOAOD -> Muon_2022C)."""
+    parts = dataset.strip("/").split("/")
+    primary = parts[0]
+    if is_data_dataset(dataset) and len(parts) > 1:
+        import re
+        match = re.match(r"Run(\d{4}[A-Z]?)", parts[1])
+        return f"{primary}_{match.group(1)}" if match else primary
     for tail in ("_TuneCP5", "_Tune", "_13p6TeV", "_13TeV"):
         if tail in primary:
             primary = primary.split(tail)[0]
     return primary.replace("-", "_")
+
+
+def create_entries(datasets, process=None, xsec=None, name=None):
+    """Sample entries (dicts) for DAS dataset names. MC entries get an xsec key `<name>_13p6TeV` to be filled
+    in samples/xsec.yaml unless `xsec` is given; the process defaults to `data` for data and the name for MC."""
+    entries = {}
+    for dataset in datasets:
+        data = is_data_dataset(dataset)
+        sample_name = name if (name and len(datasets) == 1) else suggest_name(dataset)
+        entry = {"das": dataset, "process": process or ("data" if data else sample_name)}
+        if data:
+            entry["isData"] = True
+        else:
+            entry["xsec"] = xsec or f"{sample_name}_13p6TeV"
+        entries[sample_name] = entry
+    return entries
+
+
+def write_era(era, entries, lumi=None, golden_json=None, campaign=None, output=None, dry_run=False):
+    """Create samples/<era>.yaml or append new entries to it (existing names and datasets are kept untouched).
+    Returns (added names, skipped names)."""
+    import datetime
+    path = output or os.path.join(SAMPLES_DIR, f"{era}.yaml")
+    existing = {}
+    if os.path.exists(path):
+        with open(path) as f:
+            existing = (yaml.safe_load(f) or {}).get("samples", {}) or {}
+    known_das = {s.get("das") for s in existing.values()}
+    added, skipped = [], []
+    lines = []
+    if not os.path.exists(path):
+        lines += [f"# {generated_by()}",
+                  f"# Samples of the {era} era. lumi, goldenJSON and the cross sections in samples/xsec.yaml are filled by",
+                  "# hand and verified. process: the name used by the histogrammer.",
+                  f'era: "{era}"',
+                  f"lumi: {lumi if lumi is not None else 0.0}   # pb^-1, from brilcalc on the processed lumi sections",
+                  f"goldenJSON: {golden_json or ''}",
+                  f"campaign: {campaign or ''}",
+                  "samples:"]
+    lines.append(f"  # --- {datetime.date.today().isoformat()}: {generated_by()}")
+    for sample_name, entry in entries.items():
+        if sample_name in existing or entry["das"] in known_das:
+            skipped.append(sample_name)
+            continue
+        lines.append(f"  {sample_name}:")
+        lines.append(f"    das: {entry['das']}")
+        lines.append(f"    process: {entry['process']}")
+        if entry.get("isData"):
+            lines.append("    isData: true")
+        else:
+            lines.append(f"    xsec: {entry['xsec']}")
+        added.append(sample_name)
+    if dry_run or not added:
+        return added, skipped, "\n".join(lines)
+    with open(path, "a") as f:
+        f.write(("" if os.path.getsize(path) == 0 or open(path).read().endswith("\n") else "\n") + "\n".join(lines) + "\n")
+    # placeholder cross-section keys, so that the normalisation fails loudly until they are filled
+    xsec_path = os.path.join(SAMPLES_DIR, "xsec.yaml")
+    table = load_xsec()
+    missing = [entries[n]["xsec"] for n in added if not entries[n].get("isData") and entries[n]["xsec"] not in table]
+    if missing and not output:
+        with open(xsec_path, "a") as f:
+            for key in missing:
+                f.write(f"{key}: {{xsec: null, precision: \"\", source: \"FILL ME (XSDB / TOP PAG)\", note: \"added by hell samples create\"}}\n")
+    return added, skipped, "\n".join(lines)

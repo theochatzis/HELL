@@ -1,0 +1,31 @@
+{
+ "generatedBy": "Automatically generated using: hell lumi --era 2022 --trigger HLT_IsoMu24 HLT_Ele30_WPTight_Gsf --update",
+ "era": "2022",
+ "unit": "/pb",
+ "triggers": {
+  "HLT_IsoMu24": {
+   "recorded": 8078.592655434,
+   "delivered": 8490.166833647,
+   "versions": [
+    "HLT_IsoMu24_v13",
+    "HLT_IsoMu24_v14"
+   ]
+  },
+  "HLT_Ele30_WPTight_Gsf": {
+   "recorded": 8078.592655434,
+   "delivered": 8490.166833647,
+   "versions": [
+    "HLT_Ele30_WPTight_Gsf_v1",
+    "HLT_Ele30_WPTight_Gsf_v2"
+   ]
+  }
+ },
+ "json": "/eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json",
+ "normtag": "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json",
+ "runRange": [
+  355100,
+  359021
+ ],
+ "recorded": 8086.069205255,
+ "delivered": 8499.144186936
+}

@@ -14,6 +14,9 @@ These are the rules we follow, in simple sentences.
 8. No global state in modules. Several instances of a module type must coexist.
 9. Units: GeV, cm, radians. Pseudorapidity is `eta`, not `y`.
 10. Every executable and every `hell` subcommand has `--help` that shows the usage **and an example**.
+11. Names say what things are. Use full descriptive names you can search for (`sample_name`, `run_command`,
+    `era_data`), not single letters or abbreviations whose meaning is not obvious at the place they are used.
+    Short names are fine only for loop indices and mathematics (`i`, `pt`, `eta`).
 
 ## C++
 1. C++17, compiled with `-Wall -Wextra -Wpedantic`; no warnings in our code (`hell build` prints them).
@@ -40,6 +43,12 @@ These are the rules we follow, in simple sentences.
 3. Skims apply no corrections. Corrections and scale factors belong to the analysis step, where they can be varied.
 4. Histogram and fit configurations are YAML, versioned with the code.
 
+## Generated files
+1. Every file written by a tool (configuration JSON, datacard, condor or CRAB script, sample list, report, exported
+   model) starts with the line `Automatically generated using: <the exact command>` (as a comment, or a
+   `generatedBy` key in JSON), so that anyone finding the file knows how to make it again. `hell.generated_by()`
+   gives the line.
+
 ## Data and bookkeeping
 1. Nothing is deleted from a file by the framework; files are only created.
 2. Every output file is mergeable with `hadd`: counts add, trees concatenate, provenance concatenates.
@@ -51,6 +60,20 @@ These are the rules we follow, in simple sentences.
 2. A study, a problem or a decision gets an issue folder: `hell issue new "title"`. It has the numbers, the plots and the exact commands to reproduce them. This is the raw material of the analysis note.
 3. Physics effects and methods go to `docs/methodology/` and `docs/physics/`, written so that they can be pasted into the note.
 4. Commit messages say what changed and why. Re-run `cmake` after committing so that the git hash in the provenance is right.
+
+## Versions, branches and releases
+1. `main` holds the latest released code. Development of a version happens on its branch `HELL_v<maj>.<min>`
+   (the CMSSW `CMSSW_X_Y_X` cycle branch); it is merged into `main` when released.
+2. Exact versions are annotated tags: `HELL_v<maj>.<min>_pre<N>` for pre-releases, `HELL_v<maj>.<min>` for the
+   release, `HELL_v<maj>.<min>.<patch>` for fixes on a released version.
+3. MAJOR changes when configs or analysis code break (a product, column or parameter renamed or removed);
+   MINOR adds features; PATCH fixes only.
+4. Every release has a note `docs/releases/notes/<tag>.md` from the template (new, changed, fixed, validation,
+   known limitations) and updates the tables in `docs/releases/README.md`, committed with the release.
+5. A release is tagged only from a clean tree that builds warning-free and passes `hell pray`. Never produce
+   with a `-dirty` version; the version in every output file (`hell navigate`) is the proof.
+6. Fixes needed by a released version are cherry-picked (one topic per commit), never merged across branches.
+   Details and commands: `docs/releases/branching.md`.
 
 ## Fun
 1. Commands and messages may be in the spirit of the name: `hell run`, `hell unleash-systematics`, `hell pray`, `[HELL] Fit failed to converge.`, `[HELL] Welcome to HELL.` Keep them short and never ambiguous about what happened.

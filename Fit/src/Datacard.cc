@@ -86,6 +86,7 @@ std::vector<std::string> TemplateDatacard::write() {
     shapes->Close();
 
     std::ofstream card(stem + ".txt");
+    card << "# " << cfg_.value("generatedBy", std::string("Automatically generated using: hell-datacard")) << "\n";
     card << "# HELL datacard: region " << region << ", variable " << var << ", from " << histFile << "\n";
     card << "imax 1 number of channels\njmax " << processes.size() - 1 << " number of backgrounds\nkmax * number of nuisance parameters\n";
     card << "---------------\nshapes * " << region << " " << baseName(stem) << ".root $PROCESS $PROCESS_$SYSTEMATIC\n---------------\n";
@@ -202,6 +203,7 @@ std::string ParametricWorkspace::write() {
   w.writeToFile((output + ".root").c_str());
 
   std::ofstream card(output + ".txt");
+  card << "# " << cfg_.value("generatedBy", std::string("Automatically generated using: hell-datacard --parametric")) << "\n";
   card << "# HELL parametric datacard: region " << region << ", variable " << var << "\n";
   card << "imax 1\njmax " << backgrounds.size() << "\nkmax *\n---------------\n";
   card << "shapes " << signal << " " << region << " " << baseName(output) << ".root w:" << signal << "_pdf\n";

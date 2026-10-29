@@ -1,0 +1,17 @@
+{
+ "generatedBy": "Automatically generated using: hell lumi --era 2022 --json samples/bookkeeping/quicktest_2022_processed.json",
+ "era": "2022",
+ "unit": "/pb",
+ "triggers": {},
+ "processedJson": "samples/bookkeeping/quicktest_2022_processed.json",
+ "certifiedSections": 39,
+ "processedSections": 40,
+ "json": "samples/bookkeeping/quicktest_2022_processed_certified.json",
+ "normtag": "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json",
+ "runRange": [
+  355100,
+  359021
+ ],
+ "recorded": 10.984429447,
+ "delivered": 11.41477134
+}

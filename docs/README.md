@@ -5,9 +5,11 @@
 | [design.md](design.md) | Architecture: event loop, modules, products, data model, bookkeeping, provenance, systematics |
 | [code-practices/](code-practices/README.md) | The rules we follow when writing HELL code |
 | [tools/](tools/) | How to use each part of the framework |
+| [python/hell/README.md](../python/hell/README.md) | Map of the python modules: what each does and an example |
 | [methodology/](methodology/) | Analysis methods: normalisation, systematics, positive reweighting, fit strategy, ML strategy |
 | [physics/](physics/) | Physics effects and object definitions relevant for the analyses (notes for the analysis note) |
 | [issues/](issues/README.md) | Progress log and issues: one folder per topic with numbers, plots and reproduction commands |
+| [releases/](releases/README.md) | Versions, branches and tags (the CMSSW release logic translated to HELL), release notes |
 
 ## Tools
 - [configuration.md](tools/configuration.md): python configs, `Process`, `Module`, `VarParsing`, JSON

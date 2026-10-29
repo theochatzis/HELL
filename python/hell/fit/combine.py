@@ -32,7 +32,7 @@ import subprocess
 
 import yaml
 
-from hell import HellError, log, warn
+from hell import HellError, generated_by, log, warn
 from hell.runner import find_executable
 
 
@@ -43,7 +43,8 @@ def load(yaml_path):
 
 def write_datacards(cfg, parametric=False, workdir="work"):
     os.makedirs(workdir, exist_ok=True)
-    j = {k: v for k, v in cfg.items() if k not in ("combine", "parametric")}
+    j = {"generatedBy": generated_by()}
+    j.update({k: v for k, v in cfg.items() if k not in ("combine", "parametric")})
     if parametric:
         p = cfg.get("parametric", {})
         j.update({"region": p.get("region", cfg["regions"][0]), "signal": p.get("signal", cfg["signal"][0]),

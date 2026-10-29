@@ -24,7 +24,7 @@ import os
 
 import yaml
 
-from hell import HellError, log, warn
+from hell import HellError, generated_by, log, warn
 from hell import samples as S
 
 
@@ -41,6 +41,7 @@ def build(yaml_path, output=None, processes=None, lumi=None):
     era = str(cfg.get("era", ""))
     era_data = S.load_era(era) if era else {"samples": {}, "lumi": 1.0}
     out = {
+        "generatedBy": generated_by(),
         "output": output or cfg.get("output", "hists.root"),
         "treeName": cfg.get("treeName", "Events"),
         "lumi": float(lumi if lumi is not None else cfg.get("lumi", era_data.get("lumi", 1.0))),

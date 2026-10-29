@@ -27,6 +27,8 @@ def apply_options(process, options):
         process.job["era"] = options.era
     if options.crossSection > 0:
         process.job["crossSection"] = options.crossSection
+    if options.goldenJSON:
+        process.job["goldenJSON"] = "" if options.goldenJSON.lower() == "none" else options.goldenJSON
     process.input["maxEvents"] = options.maxEvents
     process.input["skipEvents"] = options.skipEvents
     if options.outputFile:

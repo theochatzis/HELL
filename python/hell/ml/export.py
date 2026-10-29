@@ -3,14 +3,14 @@ other tools (TorchScript). The JSON holds the scaler, so the C++ side
 reproduces the python scores exactly."""
 import json
 
-from hell import log
+from hell import generated_by, log
 from hell.ml.models import layers_for_export, _torch
 
 
 def to_json(model, scaler, feature_names, class_names, task, path):
     layers = layers_for_export(model)
     outputs = ["value"] if task == "regressor" else [f"score_{c}" for c in class_names]
-    doc = {"task": task, "inputs": list(feature_names), "outputs": outputs,
+    doc = {"generatedBy": generated_by(), "task": task, "inputs": list(feature_names), "outputs": outputs,
            "scaler": {"mean": scaler.mean.tolist(), "scale": scaler.scale.tolist()},
            "layers": layers, "note": "classifier: the C++ MLP applies softmax over the outputs (sigmoid if one output)"}
     with open(path, "w") as f:

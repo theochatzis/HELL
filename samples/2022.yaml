@@ -2,7 +2,7 @@
 # process: the name used by the histogrammer (configs/*/hist.yaml groups samples by it).
 # xsec: a key of samples/xsec.yaml (or a number in pb). File lists: `hell samples files --era 2022`.
 era: "2022"
-lumi: 7980.4   # pb^-1, eras C+D (2022 pre-EE); verify with brilcalc on the processed lumi sections
+lumi: 8086.069   # pb^-1, brilcalc, see samples/lumi/2022.json
 goldenJSON: /eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json
 campaign: Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5
 samples:

@@ -101,7 +101,9 @@ class Process:
         missing = [l for l in self.path if l not in self._modules]
         if missing:
             raise HellError(f"path refers to unknown modules: {missing}")
+        from hell import generated_by
         return {
+            "generatedBy": generated_by(),
             "process": self.name,
             "input": self.input,
             "output": self.output,
@@ -144,6 +146,7 @@ class VarParsing:
         self.register("maxFiles", -1, int, "use at most this many files of the sample")
         self.register("firstFile", 0, int, "index of the first file of the sample to use")
         self.register("crossSection", -1.0, float, "cross section in pb (overrides the sample registry)")
+        self.register("goldenJSON", "", str, "certification JSON for data (default: from the sample registry; 'none' disables the filter, e.g. when CRAB applies the lumi mask)")
         self.register("logLevel", "INFO", str, "DEBUG, INFO, WARNING, ERROR")
 
     def register(self, name, default, type_, doc=""):

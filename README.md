@@ -120,7 +120,7 @@ is `cmsRun`, modules are producers, filters and analyzers exchanging products by
 | `Modules/<Package>/plugins/` | module plugins: Nano readers, Selection, Weights, Top, Output, Analyzers, ML, Systematics |
 | `Hist/`, `Fit/`, `Plot/` | histogrammer library (`hell-hist`), datacard/workspace writers (`hell-datacard`), CMS TDR plot style |
 | `bin/` | `hell` CLI and the C++ executables' sources |
-| `python/hell/` | config, samples, runner, histcfg, plot, merge, bookkeeping, batch (condor, crab), ml, fit, navigator, cli |
+| `python/hell/` | config, samples, runner, histcfg, plot, merge, bookkeeping, batch (condor, crab), ml, fit, navigator, cli; see its [README](python/hell/README.md) |
 | `configs/SingleTopMass/` | the analysis configurations (objects, skim, analysis tree, hist, fit, ML) |
 | `analyses/SingleTopMass/` | analysis-specific notes, studies and scripts |
 | `samples/` | sample registry per era, cross sections, cached file lists |
@@ -134,7 +134,7 @@ Start at [docs/README.md](docs/README.md). In particular:
 [configuration](docs/tools/configuration.md), [skimming](docs/tools/skimming.md), [histogramming](docs/tools/histogramming.md),
 [systematics](docs/methodology/systematics.md), [normalisation and bookkeeping](docs/methodology/normalisation.md),
 [fitting](docs/tools/fitting.md), [ML tools](docs/tools/mltools.md), [batch](docs/tools/batch.md), [navigator](docs/tools/navigator.md),
-[issues and progress](docs/issues/README.md).
+[issues and progress](docs/issues/README.md), [releases and branches](docs/releases/README.md).
 
 ## General Notes
 

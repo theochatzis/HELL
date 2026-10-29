@@ -31,12 +31,13 @@ import os
 import numpy as np
 import yaml
 
-from hell import HellError, log, warn
+from hell import HellError, generated_by, log, warn
 from hell import samples as S
 
 
 def _open(path):
-    import ROOT
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     f = ROOT.TFile.Open(path)
     if not f or f.IsZombie():
         raise HellError(f"cannot open {path}")
@@ -225,8 +226,8 @@ def validate(yaml_path, output=None, max_hists=None):
         twin = results.get(hp + "_noSF")
         rows.append((hp, rec, twin))
     with open(os.path.join(outdir, "validation.json"), "w") as f:
-        json.dump({"config": cfg, "lumi": lumi, "normalizeShapes": normalize, "results": results}, f, indent=1)
-    md = [f"# Object validation report ({era}, {lumi} pb^-1, shapes {'normalised to data' if normalize else 'absolute'})", "",
+        json.dump({"generatedBy": generated_by(), "config": cfg, "lumi": lumi, "normalizeShapes": normalize, "results": results}, f, indent=1)
+    md = [f"# Object validation report ({era}, {lumi} pb^-1, shapes {'normalised to data' if normalize else 'absolute'})", "", f"_{generated_by()}_", "",
           "| histogram | N_data | N_MC | data/MC | chi2/ndf | KS p | max pull | bad bins | chi2/ndf noSF | KS p noSF | max pull noSF |",
           "|---|---|---|---|---|---|---|---|---|---|---|"]
     bad = 0

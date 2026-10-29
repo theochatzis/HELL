@@ -4,8 +4,10 @@ Weight of a simulated event: `w = L * sigma * genWeight * (scale factors) / sum_
 runs over **all generated events** of the sample, before any selection.
 
 Where each number comes from in HELL:
-- `L`: `samples/<era>.yaml: lumi` (pb^-1). To be computed with `brilcalc` on the processed lumi sections
-  (`hell bookkeep` writes them in Golden-JSON format) with the normtag of the era.
+- `L`: `samples/<era>.yaml: lumi` (pb^-1), computed with `hell lumi --era <era> [--update]` (brilcalc with the
+  normtag and Golden JSON of `samples/certification.yaml`), or on the processed lumi sections of the data that
+  was actually run over (`hell bookkeep` writes them, `hell lumi --json`). The result file in `samples/lumi/`
+  is the trace of the number.
 - `sigma`: `samples/xsec.yaml`, with precision and source per entry.
 - `sum genWeight`: the NanoAOD `Runs` tree (`genEventSumw`, per run entry). `hell-run` copies the Runs tree
   of every input file and adds the sums to `hell/counts: genEventSumw`; both survive skims, merges and the

@@ -1,0 +1,32 @@
+# Master list of certified-luminosity (Golden) JSONs and luminosity settings per era.
+# Used by: hell samples create (default goldenJSON), the sample registry (goldenJSON of an era when the era
+# file does not set one), GoldenJSONFilter through the configs, and `hell lumi` (brilcalc on the Golden JSON
+# or on the processed lumi sections written by `hell bookkeep`).
+# Sources: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile and
+#          https://cms-service-dqmdc.web.cern.ch/CAF/certification/ (check for newer files before results).
+normtag: /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json
+brilEnv: /cvmfs/cms-bril.cern.ch/cms-lumi-pog/brilws-docker/brilws-env
+eras:
+  "2016":
+    goldenJSON: /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt
+    energy: 13 TeV
+  "2017":
+    goldenJSON: /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt
+    energy: 13 TeV
+  "2018":
+    goldenJSON: /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt
+    energy: 13 TeV
+  "2022":                        # pre-EE: runs C and D
+    goldenJSON: /eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json
+    runRange: [355100, 359021]
+    energy: 13.6 TeV
+  "2022EE":                      # post-EE: runs E, F, G
+    goldenJSON: /eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json
+    runRange: [359022, 362760]
+    energy: 13.6 TeV
+  "2023":
+    goldenJSON: /eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json
+    energy: 13.6 TeV
+  "2024":
+    goldenJSON: /eos/user/c/cmsdqm/www/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json
+    energy: 13.6 TeV

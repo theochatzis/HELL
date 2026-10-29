@@ -7,7 +7,7 @@ import glob
 import json
 import os
 
-from hell import HellError, log, warn
+from hell import HellError, generated_by, log, warn
 
 
 def sample_dirs(root):
@@ -25,8 +25,8 @@ def sample_dirs(root):
 
 
 def harvest_files(files, with_lumis=True):
-    import ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+    from hell.rootutils import quiet_root
+    ROOT = quiet_root()
     rec = {"files": 0, "bad_files": [], "counts": {}, "runs": set(), "lumis": {}}
     for p in files:
         f = ROOT.TFile.Open(p)
@@ -93,6 +93,18 @@ def harvest(root, output=None, with_lumis=True):
     if output:
         os.makedirs(os.path.dirname(os.path.abspath(output)), exist_ok=True)
         with open(output, "w") as f:
-            json.dump(result, f, indent=1)
+            json.dump({"generatedBy": generated_by(), "samples": result}, f, indent=1)
         log(f"bookkeeping written to {output}")
+        if with_lumis:
+            # processed lumi sections of all data samples merged, in the certification-JSON format for `hell lumi --json`
+            merged = {}
+            for name, rec in result.items():
+                if rec["genEventSumw"] == 0 and rec["processedLumis"]:
+                    for run, ranges in rec["processedLumis"].items():
+                        merged.setdefault(run, []).extend(ranges)
+            if merged:
+                processed = os.path.splitext(output)[0] + "_processed.json"
+                with open(processed, "w") as f:
+                    json.dump({run: sorted(ranges) for run, ranges in sorted(merged.items(), key=lambda kv: int(kv[0]))}, f)
+                log(f"processed lumi sections of the data samples written to {processed} (hell lumi --era <era> --json {processed})")
     return result

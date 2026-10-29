@@ -7,7 +7,7 @@ import os
 import re
 import subprocess
 
-from hell import HELL_BASE, HellError, log
+from hell import HELL_BASE, HellError, generated_by, log
 from hell.runner import find_executable, work_json_path
 from hell.config import load_config, Process
 
@@ -94,7 +94,7 @@ def to_html(cfg_path, cfg_args, out_path):
     defs = definitions()
     for m in g["path"]:
         m["definition"] = defs.get(m["type"], {})
-    html = HTML.replace("/*__DATA__*/null", json.dumps(g)).replace("__TITLE__", os.path.basename(cfg_path))
+    html = "<!-- " + generated_by() + " -->\n" + HTML.replace("/*__DATA__*/null", json.dumps(g)).replace("__TITLE__", os.path.basename(cfg_path))
     with open(out_path, "w") as f:
         f.write(html)
     log(f"navigator page written to {out_path}")

@@ -7,7 +7,7 @@ prepares JSON configurations and orchestrates jobs.
 """
 import os
 
-__version__ = "0.1.0"
+__version__ = "0.0"
 
 HELL_BASE = os.path.realpath(os.environ.get("HELL_BASE") or os.path.join(os.path.dirname(__file__), "..", ".."))
 HELL_BUILD = os.environ.get("HELL_BUILD", os.path.join(HELL_BASE, "build"))
@@ -53,6 +53,15 @@ def warn(msg):
 
 def error(msg):
     log(msg, "ERROR")
+
+
+def generated_by():
+    """The line every automatically written file starts with (code practice): the command that made it."""
+    import sys
+    argv = list(sys.argv)
+    if argv and os.path.basename(argv[0]) == "hell":
+        argv[0] = "hell"
+    return "Automatically generated using: " + " ".join(argv)
 
 
 class HellError(Exception):
