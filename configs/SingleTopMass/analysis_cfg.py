@@ -9,7 +9,7 @@ Weight systematics are branches of the Weight table (Weight_puUp ...).
 """
 from hell.config import Process, Module, VarParsing
 from hell.runner import apply_options
-from objects_cff import readers, leptons, jets, TRIGGERS, MET_FILTERS
+from objects_cff import readers, leptons, jets, check_era, TRIGGERS, MET_FILTERS
 
 options = VarParsing()
 options.register("model", "", str, "exported MLP (JSON) to evaluate on the analysis variables")
@@ -21,7 +21,7 @@ options.parse()
 
 process = Process("ANALYSIS", output="analysis.root", reportEvery=50000)
 apply_options(process, options)
-era = process.job["era"] or "2022"
+era = check_era(process.job["era"])
 
 path = readers(process)
 process.trigger = Module("TriggerFilter", paths=TRIGGERS["mu"] + TRIGGERS["el"])

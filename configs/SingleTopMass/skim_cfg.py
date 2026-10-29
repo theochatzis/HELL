@@ -10,16 +10,16 @@ normalisation and the Golden JSON, and gen-level distributions of ALL events
 """
 from hell.config import Process, Module, VarParsing
 from hell.runner import apply_options
-from objects_cff import readers, leptons, jets, TRIGGERS, MET_FILTERS
+from objects_cff import readers, leptons, jets, check_era, TRIGGERS, MET_FILTERS
 
 options = VarParsing()
 options.register("minJets", 1, int, "minimum number of selected jets")
 options.register("genPrescale", 1, int, "fill gen distributions for one event every N (1: all)")
 options.parse()
 
-process = Process("SKIM", output="skim.root", reportEvery=20000)
+process = Process("SKIM", output="skim.root", reportEvery=10000)
 apply_options(process, options)
-era = process.job["era"] or "2022"
+era = check_era(process.job["era"])
 
 # Gen-level information of every event, before anything else.
 path = readers(process)
@@ -36,7 +36,7 @@ if process.job["isData"] and process.job.get("goldenJSON"):
 # Loose objects (half the analysis thresholds), one lepton, >= minJets jets
 path += leptons(process, loose=True)
 process.oneLepton = Module("CollectionSizeFilter", src="leptons", min=1)
-process.looseJets = Module("JetSelector", src="jets", minPt=20, maxAbsEta=4.7, jetIdBit=2, cleanAgainst=["leptons"])
+process.looseJets = Module("JetSelector", src="jets", minPt=20, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual", cleanAgainst=["leptons"])
 process.minJets = Module("CollectionSizeFilter", src="looseJets", min=options.minJets)
 path += ["oneLepton", "looseJets", "minJets"]
 # What is kept

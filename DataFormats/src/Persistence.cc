@@ -63,6 +63,13 @@ struct Registrar {
       t.addColumn("rawFactor", colF(c, [](const Jet& x) { return x.rawFactor; }), "1 - rawPt/pt");
       t.addColumn("area", colF(c, [](const Jet& x) { return x.area; }), "jet area");
       t.addColumn("minDeltaRLepton", colF(c, [](const Jet& x) { return x.minDeltaRLepton; }), "min dR to a selected lepton");
+      t.addColumn("neHEF", colF(c, [](const Jet& x) { return x.neHEF; }), "neutral hadron energy fraction");
+      t.addColumn("neEmEF", colF(c, [](const Jet& x) { return x.neEmEF; }), "neutral EM energy fraction");
+      t.addColumn("chHEF", colF(c, [](const Jet& x) { return x.chHEF; }), "charged hadron energy fraction");
+      t.addColumn("chEmEF", colF(c, [](const Jet& x) { return x.chEmEF; }), "charged EM energy fraction");
+      t.addColumn("muEF", colF(c, [](const Jet& x) { return x.muEF; }), "muon energy fraction");
+      t.addColumn("nConstituents", colI(c, [](const Jet& x) { return x.nConstituents; }), "number of constituents");
+      t.addColumn("passJetIdManual", colB(c, [](const Jet& x) { return x.passJetIdManual; }), "passed the manual jet id applied by the selector");
       return t;
     });
     r.add<LeptonCollection>([](const LeptonCollection& c, const std::string& n) { FlatTable t(n, c.size()); leptonColumns(t, c); return t; });

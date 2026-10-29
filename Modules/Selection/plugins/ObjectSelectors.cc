@@ -3,12 +3,15 @@
 // python:
 //   process.goodMuons     = Module("MuonSelector", src="muons", minPt=26, id="tight", maxRelIso=0.15)
 //   process.goodElectrons = Module("ElectronSelector", src="electrons", minPt=30, id="tight", maxRelIso=0.10)
-//   process.goodJets  = Module("JetSelector", src="jets", minPt=30, maxAbsEta=4.7, jetIdBit=2,
+//   process.goodJets  = Module("JetSelector", src="jets", minPt=30, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual",
 //                              cleanAgainst=["goodMuons","goodElectrons"], minDeltaR=0.4)
+//   jetId: none | tight | tightLepVeto; jetIdSource: manual (recomputed from the PF fractions, see
+//   Modules/Selection/interface/JetId.h; the Run 3 NanoAODv12 flag is unreliable) or nano (the Jet_jetId bits).
 //   process.bTags     = Module("BTagger", src="goodJets", loose=0.0499, medium=0.2605, tight=0.6915)
 //   process.leptons   = Module("LeptonMerger", sources=["goodMuons","goodElectrons"])
 #include "Core/interface/ModuleFactory.h"
 #include "DataFormats/interface/DataFormats.h"
+#include "Modules/Selection/interface/JetId.h"
 #include <algorithm>
 
 namespace hell {
@@ -19,7 +22,10 @@ class JetSelector : public Producer {
     src_ = ctx.consumesProduct(ps.get<std::string>("src"));
     minPt_ = ps.get<double>("minPt", 30.0);
     maxAbsEta_ = ps.get<double>("maxAbsEta", 4.7);
-    jetIdBit_ = ps.get<int>("jetIdBit", 2);  // 2 = tight, 6 = tight + lepton veto
+    jetId_ = jetid::workingPoint(ps.get("jetId", "tightLepVeto"));
+    const std::string source = ps.get("jetIdSource", "manual");
+    if (source != "manual" && source != "nano") throw std::runtime_error("JetSelector: jetIdSource must be manual or nano");
+    manualId_ = source == "manual";
     minDeltaR_ = ps.get<double>("minDeltaR", 0.4);
     for (const auto& l : ps.get<std::vector<std::string>>("cleanAgainst", {})) clean_.push_back(ctx.consumesProduct(l));
     sortByPt_ = ps.get<bool>("sortByPt", true);
@@ -37,8 +43,10 @@ class JetSelector : public Producer {
     JetCollection out;
     for (const auto& j : in) {
       if (j.pt < minPt_ || j.absEta() > maxAbsEta_) continue;
-      if (jetIdBit_ > 0 && !j.passJetId(jetIdBit_)) continue;
+      const bool passId = manualId_ ? jetid::passManual(j, jetId_) : jetid::passNano(j, jetId_);
+      if (!passId) continue;
       Jet jj = j;
+      jj.passJetIdManual = manualId_;
       for (const auto* lep : leptons) jj.minDeltaRLepton = std::min<float>(jj.minDeltaRLepton, static_cast<float>(jj.deltaR(*lep)));
       if (!leptons.empty() && jj.minDeltaRLepton < minDeltaR_) continue;
       out.push_back(jj);
@@ -50,8 +58,8 @@ class JetSelector : public Producer {
   std::string src_;
   std::vector<std::string> clean_;
   double minPt_, maxAbsEta_, minDeltaR_;
-  int jetIdBit_;
-  bool sortByPt_;
+  jetid::WorkingPoint jetId_;
+  bool manualId_, sortByPt_;
 };
 
 // Common lepton category logic: isolated / non-isolated (QCD control) / veto.

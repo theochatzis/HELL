@@ -64,6 +64,10 @@ class NanoJetReader : public Producer {
     deepFlav_ = ctx.consumesArray<float>(p + "_btagDeepFlavB", true);
     pnet_ = ctx.consumesArray<float>(p + "_btagPNetB", true);
     score_ = ctx.consumesArray<float>(p + "_" + btagger_, true);
+    neHEF_ = ctx.consumesArray<float>(p + "_neHEF", true); neEmEF_ = ctx.consumesArray<float>(p + "_neEmEF", true);
+    chHEF_ = ctx.consumesArray<float>(p + "_chHEF", true); chEmEF_ = ctx.consumesArray<float>(p + "_chEmEF", true);
+    muEF_ = ctx.consumesArray<float>(p + "_muEF", true); nConst_ = ctx.consumesArray<int>(p + "_nConstituents", true);
+    chMult_ = ctx.consumesArray<int>(p + "_chMultiplicity", true); neMult_ = ctx.consumesArray<int>(p + "_neMultiplicity", true);
   }
   void produce(Event& ev) override {
     JetCollection jets;
@@ -82,14 +86,22 @@ class NanoJetReader : public Producer {
       if (deepFlav_.valid()) j.btagDeepFlavB = deepFlav_[i];
       if (pnet_.valid()) j.btagPNetB = pnet_[i];
       j.btagScore = score_.valid() ? score_[i] : -1.f;
+      if (neHEF_.valid()) j.neHEF = neHEF_[i];
+      if (neEmEF_.valid()) j.neEmEF = neEmEF_[i];
+      if (chHEF_.valid()) j.chHEF = chHEF_[i];
+      if (chEmEF_.valid()) j.chEmEF = chEmEF_[i];
+      if (muEF_.valid()) j.muEF = muEF_[i];
+      if (nConst_.valid()) j.nConstituents = nConst_[i];
+      if (chMult_.valid()) j.chMultiplicity = chMult_[i];
+      if (neMult_.valid()) j.neMultiplicity = neMult_[i];
       jets.push_back(j);
     }
     ev.put(label(), std::move(jets));
   }
  private:
   std::string btagger_;
-  ArrayHandle<float> pt_, eta_, phi_, mass_, rawFactor_, area_, deepFlav_, pnet_, score_;
-  ArrayHandle<int> jetId_, hadFlav_, partFlav_, genJetIdx_;
+  ArrayHandle<float> pt_, eta_, phi_, mass_, rawFactor_, area_, deepFlav_, pnet_, score_, neHEF_, neEmEF_, chHEF_, chEmEF_, muEF_;
+  ArrayHandle<int> jetId_, hadFlav_, partFlav_, genJetIdx_, nConst_, chMult_, neMult_;
 };
 
 class NanoMuonReader : public Producer {

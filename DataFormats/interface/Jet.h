@@ -21,6 +21,10 @@ struct Jet : public Candidate {
   float ptNominal = 0;      // pt before any systematic variation
   float scale = 1;          // multiplicative factor applied by variations (JES/JER)
   float minDeltaRLepton = 99;
+  // PF energy fractions and multiplicities (for the manual jet id, see Modules/Selection/interface/JetId.h)
+  float neHEF = 0, neEmEF = 0, chHEF = 0, chEmEF = 0, muEF = 0;
+  int nConstituents = 0, chMultiplicity = -1, neMultiplicity = -1;  // multiplicities are -1 when the NanoAOD version lacks them
+  bool passJetIdManual = false;  // set by JetSelector when jetIdSource is manual (the id that was applied)
 
   bool isBTagged(BTagWP wp = BTagWP::Medium) const { return btagWP >= static_cast<int>(wp); }
   bool passJetId(int bit) const { return (jetId & bit) == bit; }
