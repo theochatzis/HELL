@@ -12,12 +12,17 @@ hell submit cmd   jobs.txt  --output-dir /eos/... --tag t4            # "id | co
 hell unleash-systematics analysis_cfg.py --sample A --era 2022 --output-dir /eos/... --tag t5 --variations jesUp jesDown
 hell status --tag t1 ; hell check --tag t1 ; hell resubmit --tag t1 ; hell merge --tag t1
 ```
-Options: `--flavour`, `--cpus`, `--memory`, `--retries`, `--gpu`, `--dry-run`. Outputs are copied with `xrdcp`
-to EOS (`root://eosuser.cern.ch/`). `hell check` opens every expected ROOT output and requires `hell/counts`;
-failed ids go to `resubmit.txt`.
+Options: `--flavour`, `--cpus`, `--memory`, `--retries`, `--gpu`, `--dry-run`. The tarball, the job list and,
+for data samples, the Golden JSON of the era are shipped to the worker with condor file transfer
+(`transfer_input_files`), so the worker needs only cvmfs and xrootd; the skim applies the Golden JSON inside
+the job (`goldenJSON=<file>` option of the config). Outputs are copied with `xrdcp` to EOS
+(`root://eosuser.cern.ch/`). `hell check` opens every expected ROOT output and requires `hell/counts`; failed
+ids go to `resubmit.txt`. The task directory must be on AFS or local disk (`$HELL_CONDOR_WORK`; the default
+is `~/hell_condor`, or `/afs/cern.ch/work/<u>/<user>/hell_condor` when the home is on EOS).
 
 ## CRAB (`python/hell/batch/crab.py`)
 For skims of DAS datasets. Needs a CMSSW area (`cmsenv`, `source /cvmfs/cms.cern.ch/crab3/crab.sh`, proxy).
 `hell submit run skim_cfg.py --backend crab --sample X --era 2022 --tag t --output-dir /store/user/<you>/HELL/skims`
 writes `crab/work/<tag>/crab_<sample>.py`, a `scriptExe` that unpacks HELL and runs `hell run` on the files
-CRAB assigns (from `PSet.py`), and a dummy PSet. Data samples get `lumiMask` from the era's Golden JSON.
+CRAB assigns (from `PSet.py`), and a dummy PSet. Data samples get `lumiMask` from the era's Golden JSON, and the
+in-job filter is disabled (`goldenJSON=none`) since CRAB has already selected the certified lumi sections.

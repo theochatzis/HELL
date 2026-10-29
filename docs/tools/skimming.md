@@ -21,7 +21,8 @@ Speed: 5-20k events/s per core on lxplus reading from EOS (only the enabled bran
 ## Batch
 - HTCondor (local or xrootd files): `hell submit run configs/SingleTopMass/skim_cfg.py --sample A B --era 2022 --files-per-job 10 --output-dir /eos/user/$USER/HELL/skims/2022 --tag skim_v1 [--proxy]`
   then `hell check/resubmit/merge --tag skim_v1`. Outputs land in `<output-dir>/<sample>/<jobid>.root`.
-- CRAB (DAS datasets, Golden JSON applied by CRAB for data): `hell submit run ... --backend crab --output-dir /store/user/$USER/HELL/skims --tag skim_v1`
+  For data the Golden JSON of the era is shipped with the job and applied by `GoldenJSONFilter` inside it.
+- CRAB (DAS datasets, Golden JSON applied by CRAB for data through the lumi mask; the in-job filter is off): `hell submit run ... --backend crab --output-dir /store/user/$USER/HELL/skims --tag skim_v1`
   inside a CMSSW area with `crab.sh` sourced. See [batch.md](batch.md).
 
 After production: `hell bookkeep <dir> -o samples/bookkeeping/2022.json` records sums of weights, counts, runs
