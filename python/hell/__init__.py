@@ -7,7 +7,7 @@ prepares JSON configurations and orchestrates jobs.
 """
 import os
 
-__version__ = "0.0"
+__version__ = "1.0-dev"
 
 HELL_BASE = os.path.realpath(os.environ.get("HELL_BASE") or os.path.join(os.path.dirname(__file__), "..", ".."))
 HELL_BUILD = os.environ.get("HELL_BUILD", os.path.join(HELL_BASE, "build"))

@@ -4,7 +4,7 @@ find_package(Git QUIET)
 set(HELL_GIT_HASH "unknown")
 set(HELL_GIT_DIRTY "")
 set(HELL_GIT_BRANCH "unknown")
-set(HELL_VERSION "0.0")
+set(HELL_VERSION "1.0-dev")
 if(GIT_FOUND)
   execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short=12 HEAD
                   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
