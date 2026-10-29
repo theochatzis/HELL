@@ -10,6 +10,7 @@ everything required to normalise and certify the sample:
 - `genDists/`: gen-level distributions of all events before any selection, signed and |w| weighted, for the
   positive reweighting and normalisation checks (`GenDistributionAnalyzer`).
 
+The full procedure for an era, from DAS to the production, is in `analyses/SingleTopMass/skim.md`.
 Configuration: `configs/SingleTopMass/skim_cfg.py` (objects from `objects_cff.py`, loose thresholds, one lepton,
 at least one jet, Golden JSON for data).
 ```
