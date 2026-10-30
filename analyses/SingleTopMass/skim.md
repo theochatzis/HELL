@@ -92,41 +92,48 @@ What the skim keeps is defined in `configs/SingleTopMass/skim_cfg.py` (branches)
 `configs/SingleTopMass/objects_cff.py` (loose objects); gen-level distributions of all events, the `Runs` and
 `LuminosityBlocks` trees, counts and provenance are always there. No corrections are applied in the skim.
 
-## 7. Production on HTCondor
+## 7. Production on CRAB (recommended for the central datasets)
 
-One task per era (or per sample group), ten files per job, outputs under a path that carries the version:
+CRAB runs at the sites holding the data, scales to full datasets, applies the Golden JSON as the lumi mask
+for data, retries failures and reports the lumi sections it processed. It needs a CMSSW area only for the
+client (HELL itself runs from the LCG view inside the job):
 ```bash
+cd <CMSSW area>/src && cmsenv && source /cvmfs/cms.cern.ch/crab3/crab.sh && cd -
 TAG=$(git describe --tags)                           # e.g. HELL_v1.0_pre1; never -dirty for a production
-OUT=/eos/user/$USER/HELL/$TAG/skims/2022
-hell submit run configs/SingleTopMass/skim_cfg.py --era 2022 --files-per-job 10 --output-dir $OUT --tag skim_2022_$TAG --proxy \
+hell submit run configs/SingleTopMass/skim_cfg.py --backend crab --era 2022 --tag skim_2022_$TAG \
+    --output-dir /store/user/$USER/HELL/$TAG/skims --files-per-job 5 --site T3_CH_CERNBOX \
     --sample TbarBQtoLNu_t_channel_4FS TBbarQtoLNu_t_channel_4FS TTtoLNu2Q TTto2L2Nu TWminustoLNu2Q TbarWplustoLNu2Q \
              WtoLNu_2Jets DYto2L_2Jets_MLL_50 Muon_2022C Muon_2022D EGamma_2022C EGamma_2022D
 ```
-What happens: the framework is packed, one job per chunk of files is defined, the Golden JSON of the era
-is copied into the task and shipped with the data jobs (applied inside the job), `--proxy` ships your VOMS
-proxy for xrootd inputs, and `condor_submit` is called (`--dry-run` to only prepare). The task lives in
-`~/hell_condor/<tag>/` (AFS or local disk, `$HELL_CONDOR_WORK` to change it). Then:
+One CRAB task per sample is written to `crab/work/<tag>/crab_<sample>.py` and submitted (`--dry-run` to
+only write them). The in-job Golden JSON filter is switched off for CRAB since the lumi mask does the
+selection. Follow up with the CRAB client:
 ```bash
+crab status -d crab/work/skim_2022_$TAG/crab_skim_2022_${TAG}_Muon_2022C
+crab resubmit -d ...                                 # failed jobs
+crab report -d ...                                   # processed lumi sections (processedLumis.json) for step 9
+```
+The outputs are `<sample>.root` per job under `/store/user/$USER/HELL/$TAG/skims/...` on the storage site
+(T3_CH_CERNBOX = `/eos/user/<u>/<user>/`), which is the input of step 9 and of the analysis step.
+
+## 8. Production on HTCondor (private or local inputs, and everything after the skim)
+
+Condor runs on CERN resources with the files you give it, needs no CMSSW, starts in minutes and is what the
+analysis trees, histograms and trainings use. For skims it is the choice for private NanoAOD or files already
+on EOS:
+```bash
+OUT=/eos/user/$USER/HELL/$TAG/skims/2022
+hell submit run configs/SingleTopMass/skim_cfg.py --era 2022 --files-per-job 10 --output-dir $OUT --tag skim_2022_$TAG --proxy \
+    --sample TbarBQtoLNu_t_channel_4FS Muon_2022C
 hell status --tag skim_2022_$TAG                     # condor_q plus a check of the outputs
 hell check --tag skim_2022_$TAG                      # opens every output, writes resubmit.txt
 hell resubmit --tag skim_2022_$TAG                   # the failed ones
 hell merge --tag skim_2022_$TAG                      # one file per sample in <output-dir>/merged/, counts checked
 ```
-Outputs land in `<output-dir>/<sample>/<jobid>.root`; the downstream steps (`hell run analysis_cfg.py`,
-`hell hist`) read either the job files or the merged ones.
-
-## 8. Production on CRAB (alternative for the DAS datasets)
-
-```bash
-cd <CMSSW area>/src && cmsenv && source /cvmfs/cms.cern.ch/crab3/crab.sh && cd -
-hell submit run configs/SingleTopMass/skim_cfg.py --backend crab --era 2022 --tag skim_2022_$TAG \
-    --output-dir /store/user/$USER/HELL/$TAG/skims --files-per-job 5 --site T3_CH_CERNBOX \
-    --sample TbarBQtoLNu_t_channel_4FS Muon_2022C
-```
-One CRAB task per sample is written to `crab/work/<tag>/crab_<sample>.py` and submitted (`--dry-run` to
-only write them). CRAB applies the Golden JSON as the lumi mask for data, so the in-job filter is switched
-off; the output files are `<sample>.root` per job under the CRAB output path. `crab status -d crab/work/<tag>/crab_<request>`
-and `crab resubmit` are used as usual; the files are then bookkept and merged like the condor ones.
+The framework is packed, one job per chunk of files is defined, the Golden JSON of the era is shipped with
+the data jobs and applied inside them, `--proxy` ships your VOMS proxy for xrootd inputs. The task lives in
+`~/hell_condor/<tag>/` (AFS or local disk, `$HELL_CONDOR_WORK` to change it). Outputs land in
+`<output-dir>/<sample>/<jobid>.root`.
 
 ## 9. After the production: bookkeeping and the luminosity actually processed
 
@@ -136,9 +143,9 @@ hell lumi --era 2022 --json samples/bookkeeping/2022_${TAG}_processed.json
 ```
 `hell bookkeep` records per sample the files, the events in and out, `genEventSumw` (the normalisation), the
 positive and negative weight sums, the runs, and the processed lumi sections; the data lumi sections are
-merged into `..._processed.json`. `hell lumi --json` intersects them with the Golden JSON and gives the
-luminosity of what was really processed: it must agree with step 5 if everything ran, and is the number to
-use (`--update`) if part of the data is missing. Note that a truncated file (`maxEvents`) reports lumi
+merged into `..._processed.json` (for CRAB productions `crab report` gives the same information). `hell lumi
+--json` intersects them with the Golden JSON and gives the luminosity of what was really processed: it must
+agree with step 5 if everything ran, and is the number to use (`--update`) if part of the data is missing. Note that a truncated file (`maxEvents`) reports lumi
 sections it only partly processed: production jobs never cut events.
 
 ## 10. Record it

@@ -1,5 +1,10 @@
 # Batch processing
 
+Two backends. CRAB is the recommended one for skims of the central datasets (grid-wide, dataset-aware, lumi
+mask, retries, processed-lumi report); HTCondor is for skims of private or local files and for every step
+after the skim (analysis trees, histograms, training), where it needs no CMSSW and has direct EOS access.
+The outputs are the same HELL files either way.
+
 ## HTCondor (`python/hell/batch/condor.py`)
 Any HELL command can be a condor task. A task is a directory `~/hell_condor/<tag>/` (or `$HELL_CONDOR_WORK`;
 never on EOS, the schedd rejects it) with `jobs.json` (id -> command and outputs), `jobs.txt` (queue), `job.sh`,
@@ -21,7 +26,7 @@ ids go to `resubmit.txt`. The task directory must be on AFS or local disk (`$HEL
 is `~/hell_condor`, or `/afs/cern.ch/work/<u>/<user>/hell_condor` when the home is on EOS).
 
 ## CRAB (`python/hell/batch/crab.py`)
-For skims of DAS datasets. Needs a CMSSW area (`cmsenv`, `source /cvmfs/cms.cern.ch/crab3/crab.sh`, proxy).
+For skims of DAS datasets (recommended for the central samples). Only dry runs so far: submit one small real task before relying on it. Needs a CMSSW area (`cmsenv`, `source /cvmfs/cms.cern.ch/crab3/crab.sh`, proxy).
 `hell submit run skim_cfg.py --backend crab --sample X --era 2022 --tag t --output-dir /store/user/<you>/HELL/skims`
 writes `crab/work/<tag>/crab_<sample>.py`, a `scriptExe` that unpacks HELL and runs `hell run` on the files
 CRAB assigns (from `PSet.py`), and a dummy PSet. Data samples get `lumiMask` from the era's Golden JSON, and the

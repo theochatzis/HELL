@@ -81,10 +81,12 @@ hell fit configs/SingleTopMass/fit.yaml --parametric --strategy 2
 hell train configs/SingleTopMass/ml_classifier.yaml
 hell run configs/SingleTopMass/analysis_cfg.py inputFiles=skim.root era=2022 model=models/st_classifier.json
 
-# Batch (HTCondor; CRAB for skims over DAS datasets)
-hell submit run configs/SingleTopMass/skim_cfg.py --sample TbarBQtoLNu_tch TTtoLNu2Q --era 2022 --files-per-job 10 \
-     --output-dir /eos/user/$USER/HELL/skims/2022 --tag skim_v1
-hell check --tag skim_v1; hell resubmit --tag skim_v1; hell merge --tag skim_v1
+# Batch: CRAB for skims of the central datasets, HTCondor for private inputs and everything after the skim
+hell submit run configs/SingleTopMass/skim_cfg.py --backend crab --sample TbarBQtoLNu_tch Muon_2022C --era 2022 \
+     --tag skim_v1 --output-dir /store/user/$USER/HELL/skims
+hell submit run configs/SingleTopMass/analysis_cfg.py --sample TbarBQtoLNu_tch TTtoLNu2Q --era 2022 --files-per-job 10 \
+     --output-dir /eos/user/$USER/HELL/trees/2022 --tag trees_v1
+hell check --tag trees_v1; hell resubmit --tag trees_v1; hell merge --tag trees_v1
 hell bookkeep /eos/user/$USER/HELL/skims/2022 -o samples/bookkeeping/2022.json
 ```
 Every command and every executable answers `--help` with the options **and an example**.

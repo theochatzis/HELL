@@ -20,11 +20,15 @@ hell navigate skim.root
 Speed: 5-20k events/s per core on lxplus reading from EOS (only the enabled branches are read, lazily).
 
 ## Batch
-- HTCondor (local or xrootd files): `hell submit run configs/SingleTopMass/skim_cfg.py --sample A B --era 2022 --files-per-job 10 --output-dir /eos/user/$USER/HELL/skims/2022 --tag skim_v1 [--proxy]`
-  then `hell check/resubmit/merge --tag skim_v1`. Outputs land in `<output-dir>/<sample>/<jobid>.root`.
-  For data the Golden JSON of the era is shipped with the job and applied by `GoldenJSONFilter` inside it.
-- CRAB (DAS datasets, Golden JSON applied by CRAB for data through the lumi mask; the in-job filter is off): `hell submit run ... --backend crab --output-dir /store/user/$USER/HELL/skims --tag skim_v1`
-  inside a CMSSW area with `crab.sh` sourced. See [batch.md](batch.md).
+- CRAB is the recommended way to skim the central datasets: it runs at the sites holding the data, scales
+  to full datasets, applies the Golden JSON as the lumi mask for data and reports the processed lumi
+  sections. `hell submit run configs/SingleTopMass/skim_cfg.py --backend crab --sample A B --era 2022 --tag skim_v1 --output-dir /store/user/$USER/HELL/skims`
+  inside a CMSSW area with `crab.sh` sourced (the client only; the job runs HELL from the LCG view). The
+  in-job Golden JSON filter is off for CRAB jobs.
+- HTCondor for private or local inputs, and for every step after the skim: `hell submit run configs/SingleTopMass/skim_cfg.py --sample A B --era 2022 --files-per-job 10 --output-dir /eos/user/$USER/HELL/skims/2022 --tag skim_v1 [--proxy]`
+  then `hell check/resubmit/merge --tag skim_v1`. Outputs land in `<output-dir>/<sample>/<jobid>.root`; for
+  data the Golden JSON of the era is shipped with the job and applied by `GoldenJSONFilter` inside it.
+See [batch.md](batch.md) and `analyses/SingleTopMass/skim.md`.
 
 After production: `hell bookkeep <dir> -o samples/bookkeeping/2022.json` records sums of weights, counts, runs
 and processed lumi sections per sample.
