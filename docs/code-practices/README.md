@@ -58,8 +58,9 @@ These are the rules we follow, in simple sentences.
 ## Documentation and progress
 1. A new tool or module comes with its entry in `docs/tools/` and its example in the header comment.
 2. A study, a problem or a decision gets an issue folder: `hell issue new "title"`. It has the numbers, the plots and the exact commands to reproduce them. This is the raw material of the analysis note.
-3. Physics effects and methods go to `docs/methodology/` and `docs/physics/`, written so that they can be pasted into the note.
-4. Commit messages say what changed and why. Re-run `cmake` after committing so that the git hash in the provenance is right.
+3. `docs/` describes how things are; `docs/issues/` records how they got there and what is still open. Anything uncertain, unverified or decided on a guess is written in an issue (a checklist with a status), not only mentioned in a doc, so that nothing "to verify" is forgotten. Every session that changes the analysis leaves an issue entry behind.
+4. Physics effects and methods go to `docs/methodology/` and `docs/physics/`, written so that they can be pasted into the note.
+5. Commit messages say what changed and why. Re-run `cmake` after committing so that the git hash in the provenance is right.
 
 ## Versions, branches and releases
 1. `main` holds the latest released code. Development of a version happens on its branch `HELL_v<maj>.<min>`
