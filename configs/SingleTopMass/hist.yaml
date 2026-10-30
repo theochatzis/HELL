@@ -32,5 +32,12 @@ systematics:
   muF: {type: weight, up: "Weight_muFUp/Weight_nominal",  down: "Weight_muFDown/Weight_nominal"}
   isr: {type: weight, up: "Weight_isrUp/Weight_nominal",  down: "Weight_isrDown/Weight_nominal"}
   fsr: {type: weight, up: "Weight_fsrUp/Weight_nominal",  down: "Weight_fsrDown/Weight_nominal"}
-  jes: {type: tree,   up: jesUp, down: jesDown}
+  pu:  {type: weight, up: "Weight_puUp/Weight_nominal",  down: "Weight_puDown/Weight_nominal"}
+  muId:  {type: weight, up: "Weight_muIdUp/Weight_nominal",  down: "Weight_muIdDown/Weight_nominal"}
+  muIso: {type: weight, up: "Weight_muIsoUp/Weight_nominal", down: "Weight_muIsoDown/Weight_nominal"}
+  muTrig: {type: weight, up: "Weight_muTrigUp/Weight_nominal", down: "Weight_muTrigDown/Weight_nominal"}
+  elId:  {type: weight, up: "Weight_elIdUp/Weight_nominal",  down: "Weight_elIdDown/Weight_nominal"}
+  elReco: {type: weight, up: "Weight_elRecoUp/Weight_nominal", down: "Weight_elRecoDown/Weight_nominal"}
+  elTrig: {type: weight, up: "Weight_elTrigUp/Weight_nominal", down: "Weight_elTrigDown/Weight_nominal"}
+  jes: {type: tree,   up: jesRegrouped_TotalUp, down: jesRegrouped_TotalDown}
   jer: {type: tree,   up: jerUp, down: jerDown}

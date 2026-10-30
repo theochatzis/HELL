@@ -29,6 +29,12 @@ def apply_options(process, options):
         process.job["crossSection"] = options.crossSection
     if options.goldenJSON:
         process.job["goldenJSON"] = "" if options.goldenJSON.lower() == "none" else options.goldenJSON
+    if process.job.get("era"):   # central corrections of the era (samples/corrections.yaml), if listed
+        from hell.corrections import corrections
+        try:
+            process.job["corrections"] = corrections(process.job["era"])
+        except HellError:
+            pass
     process.input["maxEvents"] = options.maxEvents
     process.input["skipEvents"] = options.skipEvents
     if options.outputFile:

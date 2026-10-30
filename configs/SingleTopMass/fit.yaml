@@ -5,7 +5,7 @@ regions: [2j1b_mu, 2j1b_el]
 signal: [tch]
 backgrounds: [tt, tw, wjets, dy]
 data: data
-shapeSystematics: [muR, muF, isr, fsr, jes, jer]
+shapeSystematics: [muR, muF, isr, fsr, pu, muId, muIso, muTrig, elId, elReco, elTrig, jes, jer]
 normalisation:
   lumi_2022:  {value: 1.014, processes: ["*"]}
   xsec_tt:    {value: 1.05,  processes: [tt]}

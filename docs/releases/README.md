@@ -23,7 +23,7 @@ release is in [notes/](notes/).
 | line | branch | status | LCG view (ROOT, python) | NanoAOD / eras tested | latest tag |
 |---|---|---|---|---|---|
 | released | `main` | reference | LCG_108 x86_64-el9-gcc13-opt (ROOT 6.36, python 3.12, torch 2.7) | Run3Summer22 NanoAODv12, 2022 data (22Sep2023) | [HELL_v0.0](notes/HELL_v0.0.md) |
-| in development | `HELL_v1.0` | open | same | same, more to come | none yet |
+| in development | `HELL_v1.0` | open | same | same; central corrections (JES/JER, pileup, lepton and b-tag SFs) from the POG JSONs | none yet |
 
 ## Feature support
 

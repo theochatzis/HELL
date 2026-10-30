@@ -7,11 +7,15 @@
 //                              cleanAgainst=["goodMuons","goodElectrons"], minDeltaR=0.4)
 //   jetId: none | tight | tightLepVeto; jetIdSource: manual (recomputed from the PF fractions, see
 //   Modules/Selection/interface/JetId.h; the Run 3 NanoAODv12 flag is unreliable) or nano (the Jet_jetId bits).
-//   process.bTags     = Module("BTagger", src="goodJets", loose=0.0499, medium=0.2605, tight=0.6915)
+//   process.bTags     = Module("BTagger", src="goodJets")                        # working points from samples/corrections.yaml (btagWP)
+//   process.bTags     = Module("BTagger", src="goodJets", loose=0.047, medium=0.245, tight=0.6734)   # or by hand
 //   process.leptons   = Module("LeptonMerger", sources=["goodMuons","goodElectrons"])
 #include "Core/interface/ModuleFactory.h"
+#include "Core/interface/Logger.h"
 #include "DataFormats/interface/DataFormats.h"
 #include "Modules/Selection/interface/JetId.h"
+#include "Corrections/interface/CorrectionService.h"
+#include "Corrections/interface/EraCorrections.h"
 #include <algorithm>
 
 namespace hell {
@@ -23,9 +27,17 @@ class JetSelector : public Producer {
     minPt_ = ps.get<double>("minPt", 30.0);
     maxAbsEta_ = ps.get<double>("maxAbsEta", 4.7);
     jetId_ = jetid::workingPoint(ps.get("jetId", "tightLepVeto"));
-    const std::string source = ps.get("jetIdSource", "manual");
-    if (source != "manual" && source != "nano") throw std::runtime_error("JetSelector: jetIdSource must be manual or nano");
-    manualId_ = source == "manual";
+    idSource_ = ps.get("jetIdSource", "manual");
+    if (idSource_ != "manual" && idSource_ != "nano" && idSource_ != "correctionlib") throw std::runtime_error("JetSelector: jetIdSource must be manual, nano or correctionlib");
+    manualId_ = idSource_ == "manual";
+    if (idSource_ == "correctionlib" && jetId_ != jetid::WorkingPoint::None) {
+      // central JME jet id (needs the charged/neutral multiplicities, present from NanoAODv13 on)
+      const ParameterSet corr = EraCorrections::fromJob(ctx.job());
+      std::string name = EraCorrections::name(corr, "jetIdWP");
+      if (jetId_ == jetid::WorkingPoint::Tight && name.find("LeptonVeto") != std::string::npos) name = name.substr(0, name.find("LeptonVeto"));
+      centralId_ = CorrectionService::instance().get(EraCorrections::file(corr, "jetId"), name);
+      HELL_INFO(label()) << "jet id from the central JSON: " << name;
+    }
     minDeltaR_ = ps.get<double>("minDeltaR", 0.4);
     for (const auto& l : ps.get<std::vector<std::string>>("cleanAgainst", {})) clean_.push_back(ctx.consumesProduct(l));
     sortByPt_ = ps.get<bool>("sortByPt", true);
@@ -43,7 +55,14 @@ class JetSelector : public Producer {
     JetCollection out;
     for (const auto& j : in) {
       if (j.pt < minPt_ || j.absEta() > maxAbsEta_) continue;
-      const bool passId = manualId_ ? jetid::passManual(j, jetId_) : jetid::passNano(j, jetId_);
+      bool passId;
+      if (centralId_) {
+        if (j.chMultiplicity < 0 || j.neMultiplicity < 0) throw std::runtime_error("JetSelector: the central jet id needs Jet_chMultiplicity/neMultiplicity (NanoAODv13+); use jetIdSource=manual");
+        passId = centralId_->evaluate({static_cast<double>(j.eta), static_cast<double>(j.chHEF), static_cast<double>(j.neHEF), static_cast<double>(j.chEmEF),
+                                       static_cast<double>(j.neEmEF), static_cast<double>(j.muEF), j.chMultiplicity, j.neMultiplicity, j.nConstituents}) > 0.5;
+      } else {
+        passId = manualId_ ? jetid::passManual(j, jetId_) : jetid::passNano(j, jetId_);
+      }
       if (!passId) continue;
       Jet jj = j;
       jj.passJetIdManual = manualId_;
@@ -59,7 +78,9 @@ class JetSelector : public Producer {
   std::vector<std::string> clean_;
   double minPt_, maxAbsEta_, minDeltaR_;
   jetid::WorkingPoint jetId_;
+  std::string idSource_;
   bool manualId_, sortByPt_;
+  CorrectionService::Ref centralId_;
 };
 
 // Common lepton category logic: isolated / non-isolated (QCD control) / veto.
@@ -194,8 +215,16 @@ class BTagger : public Producer {
  public:
   BTagger(const ParameterSet& ps, ModuleContext& ctx) : Producer(ctx) {
     src_ = ctx.consumesProduct(ps.get<std::string>("src"));
-    loose_ = ps.get<double>("loose"); medium_ = ps.get<double>("medium"); tight_ = ps.get<double>("tight");
     maxAbsEta_ = ps.get<double>("maxAbsEta", 2.5);
+    if (ps.has("loose") || ps.has("medium") || ps.has("tight")) {
+      loose_ = ps.get<double>("loose"); medium_ = ps.get<double>("medium"); tight_ = ps.get<double>("tight");
+      HELL_INFO(label()) << "working points by hand: L " << loose_ << " M " << medium_ << " T " << tight_;
+    } else {  // central BTV JSON of the era
+      const ParameterSet corr = EraCorrections::fromJob(ctx.job());
+      auto wp = CorrectionService::instance().get(EraCorrections::file(corr, "btag"), EraCorrections::name(corr, "btagWP"));
+      loose_ = wp->evaluate({std::string("L")}); medium_ = wp->evaluate({std::string("M")}); tight_ = wp->evaluate({std::string("T")});
+      HELL_INFO(label()) << EraCorrections::name(corr, "btagWP") << ": L " << loose_ << " M " << medium_ << " T " << tight_;
+    }
     ctx.produces<JetCollection>();
   }
   void produce(Event& ev) override {

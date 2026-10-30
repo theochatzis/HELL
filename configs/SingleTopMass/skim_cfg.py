@@ -47,6 +47,6 @@ process.skim = Module("TreeWriter", treeName="Events",
                             "Rho_fixedGridRhoFastjetAll", "LHE_*", "LHEScaleWeight", "nLHEScaleWeight", "LHEPdfWeight", "nLHEPdfWeight",
                             "PSWeight", "nPSWeight", "GenMET_*", "genTtbarId"],
                       drop=["Jet_*Calo*", "Jet_hfsigma*", "Jet_hfcentral*", "Muon_*mva*", "Muon_jetPtRel*", "Electron_*mva*", "Electron_jetPtRel*",
-                            "Jet_btagRobust*", "Jet_btagDeepFlavCvB", "Jet_btagDeepFlavCvL", "Jet_btagDeepFlavQG", "Jet_PNetRegPtRaw*"])
+                            "Jet_btagDeepFlavCvB", "Jet_btagDeepFlavCvL", "Jet_btagDeepFlavQG"])
 path += ["skim"]
 process.path = path

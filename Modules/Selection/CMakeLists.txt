@@ -1,1 +1,1 @@
-hell_add_plugin(Selection)   # all plugins/*.cc
+hell_add_plugin(Selection DEPENDS HellCorrections)   # all plugins/*.cc

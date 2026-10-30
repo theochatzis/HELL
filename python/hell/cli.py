@@ -61,7 +61,7 @@ def build_parser():
             "--sample TbarBQtoLNu_tch --era 2022 --output-dir /eos/user/x/HELL/trees/2022 --tag trees_v1\n"
             "  hell unleash-systematics configs/SingleTopMass/analysis_cfg.py --local inputFiles=skim.root era=2022")
     unleash_systematics_command.add_argument("config"); unleash_systematics_command.add_argument("options", nargs="*", help="key=value config options (local mode)")
-    unleash_systematics_command.add_argument("--variations", nargs="+", default=["jesUp", "jesDown", "jerUp", "jerDown"])
+    unleash_systematics_command.add_argument("--variations", nargs="+", default=["jesRegrouped_TotalUp", "jesRegrouped_TotalDown", "jerUp", "jerDown"])
     unleash_systematics_command.add_argument("--local", action="store_true", help="run locally instead of submitting to condor")
     unleash_systematics_command.add_argument("--sample", nargs="+", default=[]); unleash_systematics_command.add_argument("--era", default="")
     unleash_systematics_command.add_argument("--output-dir", default=None); unleash_systematics_command.add_argument("--tag", default=None)
@@ -166,6 +166,11 @@ def build_parser():
 
     env_command = sub(subparsers, "env", "Report the environment (ROOT, python, torch, build state, git HEAD vs built version). The environment is loaded with `source env/setup.sh`.",
              "  source env/setup.sh        # load (a command cannot change your shell)\n  hell env                   # what is loaded and whether the build is current")
+
+    corrections_command = sub(subparsers, "corrections", "Central POG corrections of an era (samples/corrections.yaml): resolved files and names, existence check, content of a JSON.",
+                              "  hell corrections --era 2022\n  hell corrections --era 2022 --list btag          # corrections in the b-tag JSON with their inputs\n  hell corrections --era 2022 --list jerc --grep Regrouped")
+    corrections_command.add_argument("--era", required=True); corrections_command.add_argument("--list", default=None, help="file key to list (btag, jerc, jetId, jetVetoMap, muon, electron, electronHlt, pileup)")
+    corrections_command.add_argument("--grep", default=None)
 
     lumi_command = sub(subparsers, "lumi", "Integrated luminosity with brilcalc from the master certification list (samples/certification.yaml), per trigger if asked; can update the era file.",
                        "  hell lumi --era 2022\n  hell lumi --era 2022 --trigger HLT_IsoMu24 HLT_Ele30_WPTight_Gsf\n"
@@ -401,6 +406,18 @@ def cmd_env(args):
     return 0
 
 
+def cmd_corrections(args):
+    from hell.corrections import report, corrections, list_corrections
+    print(report(args.era))
+    if args.list:
+        path = corrections(args.era)["files"].get(args.list)
+        if not path:
+            raise HellError(f"no file key '{args.list}'")
+        for name, inputs in list_corrections(path, args.grep):
+            print(f"  {name}: " + ", ".join(f"{n} ({t})" for n, t in inputs))
+    return 0
+
+
 def cmd_lumi(args):
     from hell.lumi import compute
     compute(args.era, args.json, args.trigger, args.unit, args.dry_run, args.update, not args.no_golden)
@@ -473,7 +490,7 @@ def cmd_version(args):
 
 COMMANDS = {"run": cmd_run, "skim": cmd_run, "hist": cmd_hist, "unleash-systematics": cmd_unleash, "plot": cmd_plot, "fit": cmd_fit,
             "train": cmd_train, "samples": cmd_samples, "submit": cmd_submit, "merge": cmd_merge, "bookkeep": cmd_bookkeep,
-            "navigate": cmd_navigate, "validate": cmd_validate, "build": cmd_build, "env": cmd_env, "lumi": cmd_lumi, "list-modules": cmd_list_modules, "dump": cmd_dump, "issue": cmd_issue, "pray": cmd_pray, "version": cmd_version}
+            "navigate": cmd_navigate, "validate": cmd_validate, "build": cmd_build, "env": cmd_env, "lumi": cmd_lumi, "corrections": cmd_corrections, "list-modules": cmd_list_modules, "dump": cmd_dump, "issue": cmd_issue, "pray": cmd_pray, "version": cmd_version}
 
 
 def main(argv=None):

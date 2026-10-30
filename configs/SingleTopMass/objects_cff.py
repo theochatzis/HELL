@@ -1,25 +1,24 @@
 """Object definitions shared by the SingleTopMass configurations.
 
-Everything that defines what a "jet", a "lepton" or a "b tag" is lives here,
-so that the skim, the analysis tree and any study use the same definitions.
-Working points (Run 3, 2022, ParticleNet) from the BTV recommendations:
-  https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
+Everything that defines what a "jet", a "lepton" or a "b tag" is lives here, so that the skim, the analysis
+tree and any study use the same definitions. Working points, scale factors, JES/JER and pileup weights come
+from the central POG correctionlib JSONs listed per era in samples/corrections.yaml (`hell corrections --era 2022`);
+nothing is typed here.
 """
 from hell import HellError
 from hell.config import Module
+from hell.corrections import eras as correction_eras
 
-# ParticleNet b-tagging working points, Run3Summer22 (verify against the BTV wiki)
-BTAG_WP = {"2022": {"loose": 0.047, "medium": 0.245, "tight": 0.6734},
-           "2022EE": {"loose": 0.0499, "medium": 0.2605, "tight": 0.6915}}
-SUPPORTED_ERAS = sorted(BTAG_WP)
+SUPPORTED_ERAS = sorted(correction_eras())
 
 
 def check_era(era):
     """The era every definition below is keyed on. Fails loudly instead of silently using a default."""
     if era not in SUPPORTED_ERAS:
         raise HellError(f"era '{era or '(none)'}' is not supported by configs/SingleTopMass/objects_cff.py; "
-                        f"give era=... or sample=... with one of: {', '.join(SUPPORTED_ERAS)}")
+                        f"give era=... or sample=... with one of: {', '.join(SUPPORTED_ERAS)} (samples/corrections.yaml)")
     return era
+
 
 TRIGGERS = {"mu": ["HLT_IsoMu24"], "el": ["HLT_Ele30_WPTight_Gsf"]}
 MET_FILTERS = ["Flag_goodVertices", "Flag_globalSuperTightHalo2016Filter", "Flag_EcalDeadCellTriggerPrimitiveFilter",
@@ -47,16 +46,38 @@ def leptons(process, loose=False):
     return ["goodMuons", "goodElectrons", "leptons"]
 
 
-def jets(process, era, min_pt=30.0, variations=None):
-    """Jets cleaned against the selected leptons, b-tagging working points, optional variation producer.
-    The jet id is recomputed from the PF fractions (tight + lepton veto): the Run 3 NanoAODv12 Jet_jetId flag
-    is unreliable (see Modules/Selection/interface/JetId.h)."""
+def jets(process, era, min_pt=30.0, apply_veto_map=True):
+    """Jets cleaned against the selected leptons, JES/JER from the central JME JSON (JER smearing of MC;
+    the job variation jes<Source>Up/Down or jerUp/Down selects the shift), b-tag working points from the
+    central BTV JSON, optional jet veto map. The jet id is recomputed from the PF fractions (tight + lepton
+    veto): the Run 3 NanoAODv12 flag is unreliable (see Modules/Selection/interface/JetId.h)."""
     check_era(era)
-    process.jetVar = Module("JetVariation", src="jets", met="met",
-                            variations=variations or {"jesUp": {"scale": 1.03}, "jesDown": {"scale": 0.97},
-                                                      "jerUp": {"scale": 1.01}, "jerDown": {"scale": 0.99}})
-    process.goodJets = Module("JetSelector", src="jetVar", minPt=min_pt, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual",
+    process.goodJets = Module("JetSelector", src="jets", minPt=min_pt * 0.8, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual",
                               cleanAgainst=["leptons"], minDeltaR=0.4)
-    wp = BTAG_WP[era]
-    process.bTags = Module("BTagger", src="goodJets", loose=wp["loose"], medium=wp["medium"], tight=wp["tight"], maxAbsEta=2.5)
-    return ["jetVar", "goodJets", "bTags"]
+    process.jetVar = Module("JetEnergyCorrector", src="goodJets", met="met", eventInfo="eventInfo", smear=True, minPtMET=15)
+    process.corrJets = Module("JetSelector", src="jetVar", minPt=min_pt, maxAbsEta=4.7, jetId="none", cleanAgainst=[])
+    process.bTags = Module("BTagger", src="corrJets", maxAbsEta=2.5)
+    path = ["goodJets", "jetVar", "corrJets", "bTags"]
+    if apply_veto_map:
+        process.jetVeto = Module("JetVetoMapFilter", src="corrJets", minPt=15)
+        path.append("jetVeto")
+    return path
+
+
+def weights(process, pileup=True, lepton_sf=True, btag_sf=True, btag_efficiencies=""):
+    """Event weights with their variations: generator, pileup, lepton and b-tag scale factors, all from the
+    central JSONs. Returns the list of Weights products to collect."""
+    process.genWeight = Module("GenWeightProducer")
+    sources = ["genWeight"]
+    if pileup:
+        process.puWeight = Module("PileupWeightProducer", eventInfo="eventInfo")
+        sources.append("puWeight")
+    if lepton_sf:
+        process.muonSF = Module("MuonScaleFactorProducer", src="goodMuons", applyTrigger=True)
+        process.electronSF = Module("ElectronScaleFactorProducer", src="goodElectrons", applyTrigger=True)
+        sources += ["muonSF:weights", "electronSF:weights"]
+    if btag_sf:
+        process.btagSF = Module("BTagScaleFactorProducer", src="bTags", workingPoint="M", efficiencies=btag_efficiencies)
+        sources.append("btagSF")
+    process.weights = Module("WeightCollector", sources=sources)
+    return [s.split(":")[0] for s in sources] + ["weights"]

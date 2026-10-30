@@ -36,9 +36,9 @@ for s in "${!FILES[@]}"; do
 done
 fi
 if want trees; then
-step "2. analysis trees: nominal and JES variations"
+step "2. analysis trees: nominal and JES variations (central corrections: JER smearing, pileup, lepton SFs)"
 for s in "${!FILES[@]}"; do
-  vars="nominal jesUp jesDown"; [ $s = Muon_2022C ] && vars="nominal"
+  vars="nominal jesRegrouped_TotalUp jesRegrouped_TotalDown"; [ $s = Muon_2022C ] && vars="nominal"
   for v in $vars; do
     d=$OUT/trees/2022; [ $v = nominal ] || d=${d}_$v
     mkdir -p $d/$s
@@ -49,7 +49,7 @@ fi
 if want bookkeep; then
 step "3. bookkeeping and merge check"
 hell bookkeep $OUT/trees/2022 -o $OUT/bookkeeping_2022.json --no-lumis | grep HELL
-hell merge -o $OUT/merged_tch.root $OUT/trees/2022/TbarBQtoLNu_tch/*.root $OUT/trees/2022_jesUp/TbarBQtoLNu_tch/*.root --force | grep HELL
+hell merge -o $OUT/merged_tch.root $OUT/trees/2022/TbarBQtoLNu_tch/*.root $OUT/trees/2022_jesRegrouped_TotalUp/TbarBQtoLNu_tch/*.root --force | grep HELL
 fi
 if want hist; then
 step "4. histograms and plots"

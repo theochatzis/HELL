@@ -1,0 +1,57 @@
+# Central corrections per era: the POG correctionlib JSONs from cvmfs (jsonpog-integration) and the names of
+# the corrections used. Everything correction-related in the configs comes from here, so a new era or a new
+# POG version is a change of this file only. `hell corrections --era 2022` prints the resolved values and
+# checks that the files exist. Documentation of the content of each file:
+#   https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/
+base: /cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG
+# {dir} below is replaced by the era directory name
+files:
+  btag: BTV/{dir}/btagging.json.gz
+  jerc: JME/{dir}/jet_jerc.json.gz
+  jetId: JME/{dir}/jetid.json.gz
+  jetVetoMap: JME/{dir}/jetvetomaps.json.gz
+  muon: MUO/{dir}/muon_Z.json.gz
+  electron: EGM/{dir}/electron.json.gz
+  electronHlt: EGM/{dir}/electronHlt.json.gz
+  pileup: LUM/{dir}/puWeights.json.gz
+eras:
+  "2022":
+    dir: 2022_Summer22
+    jetAlgo: AK4PFPuppi
+    jecMC: Summer22_22Sep2023_V2_MC             # prefix of the MC JEC levels and uncertainty sources
+    jecData: {C: Summer22_22Sep2023_RunCD_V2_DATA, D: Summer22_22Sep2023_RunCD_V2_DATA}   # per run era letter
+    jer: Summer22_22Sep2023_JRV1_MC             # prefix of PtResolution and ScaleFactor
+    jesSources: [Regrouped_Total]               # uncertainty sources used as variations (Regrouped_* for the reduced set)
+    jetIdWP: AK4PUPPI_TightLeptonVeto
+    jetVetoMap: Summer22_23Sep2023_RunCD_V1
+    btagger: particleNet                        # particleNet | deepJet | robustParticleTransformer
+    btagWP: particleNet_wp_values
+    btagSFHeavy: particleNet_comb               # b and c jets (comb: ttbar + mujets); mujets is the alternative
+    btagSFLight: particleNet_light
+    pileup: Collisions2022_355100_357900_eraBCD_GoldenJson
+    muonId: NUM_TightID_DEN_TrackerMuons
+    muonIso: NUM_TightPFIso_DEN_TightID
+    muonTrigger: NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight
+    electronYear: 2022Re-recoBCD
+    electronId: Tight
+    electronHltPath: HLT_SF_Ele30_TightID
+  "2022EE":
+    dir: 2022_Summer22EE
+    jetAlgo: AK4PFPuppi
+    jecMC: Summer22EE_22Sep2023_V2_MC
+    jecData: {E: Summer22EE_22Sep2023_RunE_V2_DATA, F: Summer22EE_22Sep2023_RunF_V2_DATA, G: Summer22EE_22Sep2023_RunG_V2_DATA}
+    jer: Summer22EE_22Sep2023_JRV1_MC
+    jesSources: [Regrouped_Total]
+    jetIdWP: AK4PUPPI_TightLeptonVeto
+    jetVetoMap: Summer22EE_23Sep2023_RunEFG_V1
+    btagger: particleNet
+    btagWP: particleNet_wp_values
+    btagSFHeavy: particleNet_comb
+    btagSFLight: particleNet_light
+    pileup: Collisions2022_359022_362760_eraEFG_GoldenJson
+    muonId: NUM_TightID_DEN_TrackerMuons
+    muonIso: NUM_TightPFIso_DEN_TightID
+    muonTrigger: NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight
+    electronYear: 2022Re-recoE+PromptFG
+    electronId: Tight
+    electronHltPath: HLT_SF_Ele30_TightID

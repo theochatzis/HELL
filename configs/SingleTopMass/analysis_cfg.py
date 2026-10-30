@@ -9,11 +9,12 @@ Weight systematics are branches of the Weight table (Weight_puUp ...).
 """
 from hell.config import Process, Module, VarParsing
 from hell.runner import apply_options
-from objects_cff import readers, leptons, jets, check_era, TRIGGERS, MET_FILTERS
+from objects_cff import readers, leptons, jets, weights, check_era, TRIGGERS, MET_FILTERS
 
 options = VarParsing()
 options.register("model", "", str, "exported MLP (JSON) to evaluate on the analysis variables")
-options.register("puWeights", "", str, "ROOT file with pileup ratio histograms (ratio, ratioUp, ratioDown)")
+options.register("btagEfficiencies", "", str, "ROOT file with the b-tag efficiency maps (BTagEfficiencyAnalyzer merged over the sample); empty: b-tag weight 1")
+options.register("btagEfficiencyMaps", False, bool, "book the BTagEfficiencyAnalyzer (to produce the efficiency maps)")
 options.register("minJets", 2, int, "minimum number of selected jets")
 options.register("maxJets", 3, int, "maximum number of selected jets (-1: none)")
 options.register("quickHists", True, bool, "book quick-look histograms")
@@ -35,20 +36,16 @@ path += ["oneLepton", "noVetoMuons", "noVetoElectrons"]
 path += jets(process, era)
 process.jetCount = Module("CollectionSizeFilter", src="bTags", min=options.minJets, max=options.maxJets)
 path += ["jetCount"]
-# Weights
-process.genWeight = Module("GenWeightProducer")
-weight_sources = ["genWeight"]
-if options.puWeights:
-    process.puWeight = Module("HistogramWeightProducer", name="pu", file=options.puWeights, hist="ratio", histUp="ratioUp", histDown="ratioDown",
-                              variable="nTrueInt", eventInfo="eventInfo")
-    weight_sources.append("puWeight")
-process.weights = Module("WeightCollector", sources=weight_sources)
-path += weight_sources + ["weights"]
+# Weights: generator, pileup, lepton and b-tag scale factors with their variations (central JSONs)
+path += weights(process, btag_efficiencies=options.btagEfficiencies)
+if options.btagEfficiencyMaps:
+    process.btagEff = Module("BTagEfficiencyAnalyzer", src="bTags", workingPoint="M")
+    path += ["btagEff"]
 # Top reconstruction and analysis variables
 process.top = Module("TopReconstructor", leptons="leptons", jets="bTags", met="jetVar:met", bTagWP="medium", wMass=80.379)
 process.stVars = Module("SingleTopVariables", leptons="leptons", jets="bTags", met="jetVar:met", top="top")
 path += ["top", "stVars"]
-products = {"eventInfo": "Event", "bTags": "Jet", "leptons": "Lepton", "goodMuons": "Muon", "goodElectrons": "Electron",
+products = {"eventInfo": "Event", "bTags": "Jet", "leptons": "Lepton", "muonSF": "Muon", "electronSF": "Electron",
             "jetVar:met": "MET", "top": "Top", "weights": "Weight", "stVars": "st"}
 if options.model:
     process.mlScore = Module("MLPScoreProducer", model=options.model, table="stVars")
@@ -60,8 +57,8 @@ if options.quickHists:
 # Object validation (data/MC agreement of the reconstruction and of the scale factors), after the weights,
 # per channel: the Muon primary dataset is compared with objValMu, EGamma with objValEl.
 for ch in ("mu", "el"):
-    setattr(process, f"objVal{ch.capitalize()}", Module("ObjectValidationAnalyzer", channel=ch, leptons="leptons", muons="goodMuons",
-                                                        electrons="goodElectrons", jets="bTags", met="jetVar:met", eventInfo="eventInfo"))
+    setattr(process, f"objVal{ch.capitalize()}", Module("ObjectValidationAnalyzer", channel=ch, leptons="leptons", muons="muonSF",
+                                                        electrons="electronSF", jets="bTags", met="jetVar:met", eventInfo="eventInfo"))
 path += ["objValMu", "objValEl"]
 process.tree = Module("TreeWriter", treeName="Events", keep=["run", "luminosityBlock", "event", "HLT_IsoMu24", "HLT_Ele30_WPTight_Gsf"],
                       products=products)

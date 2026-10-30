@@ -39,6 +39,7 @@ include(cmake/HellMacros.cmake)
 
 add_subdirectory(Core)
 add_subdirectory(DataFormats)
+add_subdirectory(Corrections)
 add_subdirectory(Modules)
 add_subdirectory(Hist)
 add_subdirectory(Fit)
