@@ -3,7 +3,9 @@
 #include "Core/interface/ModuleFactory.h"
 #include "Core/interface/Utils.h"
 #include "Core/interface/Version.h"
+#include <TObjArray.h>
 #include <TStopwatch.h>
+#include <set>
 #include <iomanip>
 #include <sstream>
 
@@ -44,6 +46,7 @@ void Forge::initialize() {
   input_ = std::make_unique<InputSource>(files, treeName, inPs.get<bool>("probeFiles", true));
   HELL_INFO("forge") << input_->goodFiles().size() << " input files, " << input_->entries() << " entries in tree " << treeName
                      << (input_->badFiles().empty() ? "" : " (" + std::to_string(input_->badFiles().size()) + " files skipped)");
+  checkNanoVersion();
   input_->chain().SetBranchStatus("*", 0);
 
   // Output
@@ -58,7 +61,8 @@ void Forge::initialize() {
   provenance_.setInputFiles(input_->goodFiles());
   provenance_.setBadInputFiles(input_->badFiles());
   provenance_.set("job", {{"process", job_.processName}, {"isData", job_.isData}, {"era", job_.era}, {"sample", job_.sample},
-                          {"variation", job_.variation}, {"crossSection", job_.crossSection}, {"output", outputFile_}});
+                          {"variation", job_.variation}, {"crossSection", job_.crossSection}, {"output", outputFile_},
+                          {"nanoVersion", jobPs.get("nanoVersion", "")}});
 
   // Modules
   buildModules();
@@ -84,6 +88,28 @@ void Forge::initialize() {
     for (auto& p : path_) p.module->beginFile(path);
   });
   initialized_ = true;
+}
+
+// The declared NanoAOD version (job.nanoVersion, settings in job.nano) must match the branch fingerprint of
+// the input: branches that must be present and branches that must be absent (samples/nanoaod.yaml).
+void Forge::checkNanoVersion() {
+  const ParameterSet jobPs = config_.getPSet("job", ParameterSet());
+  const std::string version = jobPs.get("nanoVersion", "");
+  if (version.empty()) { HELL_WARN("forge") << "no NanoAOD version declared (nanoVersion=): the selections cannot be aligned to the input"; return; }
+  if (!jobPs.has("nano")) return;
+  const ParameterSet nano = jobPs.getPSet("nano");
+  const ParameterSet fp = nano.getPSet("fingerprint", ParameterSet());
+  TObjArray* branches = input_->chain().GetListOfBranches();
+  std::set<std::string> names;
+  if (branches) for (int i = 0; i < branches->GetEntries(); ++i) names.insert(branches->At(i)->GetName());
+  std::vector<std::string> missing, unexpected;
+  for (const auto& b : fp.get<std::vector<std::string>>("present", {})) if (!names.count(b)) missing.push_back(b);
+  for (const auto& b : fp.get<std::vector<std::string>>("absent", {})) if (names.count(b)) unexpected.push_back(b);
+  if (missing.empty() && unexpected.empty()) { HELL_INFO("forge") << "input matches NanoAOD v" << version; return; }
+  const std::string msg = "the input does not look like NanoAOD v" + version + ": missing branches [" + joinStrings(missing, ", ") +
+                          "], unexpected branches [" + joinStrings(unexpected, ", ") + "]. Declare the right version (nanoVersion=) or allowNanoVersionMismatch=True";
+  if (jobPs.get<bool>("allowNanoVersionMismatch", false)) HELL_WARN("forge") << msg;
+  else throw std::runtime_error(msg);
 }
 
 void Forge::buildModules() {

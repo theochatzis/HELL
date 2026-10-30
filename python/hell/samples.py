@@ -55,11 +55,18 @@ def load_era(era):
             data["goldenJSON"] = golden_json(era)
         except HellError:
             pass
+    from hell.nanoaod import version_from_dataset
     for name, s in data["samples"].items():
         s.setdefault("name", name)
         s.setdefault("isData", False)
         s.setdefault("process", "data" if s["isData"] else name)
         s["era"] = era
+        if "nanoVersion" not in s:
+            version = version_from_dataset(s.get("das", "")) or data.get("nanoVersion")
+            if version:
+                s["nanoVersion"] = str(version)
+        else:
+            s["nanoVersion"] = str(s["nanoVersion"])
     return data
 
 
@@ -212,6 +219,10 @@ def create_entries(datasets, process=None, xsec=None, name=None):
         data = is_data_dataset(dataset)
         sample_name = name if (name and len(datasets) == 1) else suggest_name(dataset)
         entry = {"das": dataset, "process": process or ("data" if data else sample_name)}
+        from hell.nanoaod import version_from_dataset
+        version = version_from_dataset(dataset)
+        if version:
+            entry["nanoVersion"] = version
         if data:
             entry["isData"] = True
         else:
@@ -249,6 +260,8 @@ def write_era(era, entries, lumi=None, golden_json=None, campaign=None, output=N
         lines.append(f"  {sample_name}:")
         lines.append(f"    das: {entry['das']}")
         lines.append(f"    process: {entry['process']}")
+        if entry.get("nanoVersion"):
+            lines.append(f"    nanoVersion: \"{entry['nanoVersion']}\"")
         if entry.get("isData"):
             lines.append("    isData: true")
         else:

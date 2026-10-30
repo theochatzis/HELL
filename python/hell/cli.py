@@ -271,7 +271,7 @@ def cmd_samples(args):
             for sample_name, sample in era_data["samples"].items():
                 kind = "data" if sample.get("isData") else f"MC xsec={S.cross_section(sample)} pb"
                 cached = os.path.exists(S.filelist_path(era, sample_name))
-                print(f"  {sample_name:40s} process={sample.get('process'):10s} {kind:28s} {'files cached' if cached else ''}")
+                print(f"  {sample_name:40s} process={sample.get('process'):10s} nano=v{sample.get('nanoVersion', '?'):3s} {kind:28s} {'files cached' if cached else ''}")
         return 0
     if args.action == "files":
         if not args.era:

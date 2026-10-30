@@ -7,7 +7,7 @@
 //   process.eventInfo = Module("NanoEventInfoReader")
 //   process.jets      = Module("NanoJetReader", prefix="Jet", btagger="btagPNetB")
 //   process.muons     = Module("NanoMuonReader")
-//   process.electrons = Module("NanoElectronReader")
+//   process.electrons = Module("NanoElectronReader", etaSC="deltaEtaSC")   # or "superclusterEta" (NanoAODv15)
 //   process.met       = Module("NanoMETReader", prefix="PuppiMET")
 //   process.genParts  = Module("NanoGenParticleReader")
 #include "Core/interface/ModuleFactory.h"
@@ -173,7 +173,9 @@ class NanoElectronReader : public Producer {
     dxy_ = ctx.consumesArray<float>(p + "_dxy", true); dz_ = ctx.consumesArray<float>(p + "_dz", true);
     sip3d_ = ctx.consumesArray<float>(p + "_sip3d", true);
     cutBased_ = ctx.consumesArray<int>(p + "_cutBased", true);
-    deltaEtaSC_ = ctx.consumesArray<float>(p + "_deltaEtaSC", true);
+    etaSCMode_ = ps.get("etaSC", "deltaEtaSC");   // deltaEtaSC: eta + Electron_deltaEtaSC; superclusterEta: Electron_superclusterEta (NanoAODv15)
+    if (etaSCMode_ == "superclusterEta") superclusterEta_ = ctx.consumesArray<float>(p + "_superclusterEta");
+    else deltaEtaSC_ = ctx.consumesArray<float>(p + "_deltaEtaSC", true);
     mvaIso90_ = ctx.consumesArray<bool>(p + "_mvaIso_WP90", true); mvaIso80_ = ctx.consumesArray<bool>(p + "_mvaIso_WP80", true);
     mvaNoIso90_ = ctx.consumesArray<bool>(p + "_mvaNoIso_WP90", true); mvaNoIso80_ = ctx.consumesArray<bool>(p + "_mvaNoIso_WP80", true);
     convVeto_ = ctx.consumesArray<bool>(p + "_convVeto", true); lostHits_ = ctx.consumesArray<int>(p + "_lostHits", true);
@@ -200,7 +202,7 @@ class NanoElectronReader : public Producer {
       if (mvaIso80_.valid()) e.mvaIsoWP80 = mvaIso80_[i];
       if (mvaNoIso90_.valid()) e.mvaNoIsoWP90 = mvaNoIso90_[i];
       if (mvaNoIso80_.valid()) e.mvaNoIsoWP80 = mvaNoIso80_[i];
-      e.etaSC = e.eta + (deltaEtaSC_.valid() ? deltaEtaSC_[i] : 0.f);
+      e.etaSC = superclusterEta_.valid() ? superclusterEta_[i] : e.eta + (deltaEtaSC_.valid() ? deltaEtaSC_[i] : 0.f);
       if (convVeto_.valid()) e.convVeto = convVeto_[i];
       if (lostHits_.valid()) e.lostHits = lostHits_[i];
       if (r9_.valid()) e.r9 = r9_[i];
@@ -214,7 +216,8 @@ class NanoElectronReader : public Producer {
     ev.put(label(), std::move(out));
   }
  private:
-  ArrayHandle<float> pt_, eta_, phi_, mass_, iso_, miniIso_, dxy_, dz_, sip3d_, deltaEtaSC_, r9_, sieie_, hoe_, eInvMinusPInv_, scEtOverPt_;
+  std::string etaSCMode_;
+  ArrayHandle<float> pt_, eta_, phi_, mass_, iso_, miniIso_, dxy_, dz_, sip3d_, deltaEtaSC_, superclusterEta_, r9_, sieie_, hoe_, eInvMinusPInv_, scEtOverPt_;
   ArrayHandle<int> charge_, cutBased_, lostHits_, genIdx_;
   ArrayHandle<bool> mvaIso90_, mvaIso80_, mvaNoIso90_, mvaNoIso80_, convVeto_;
 };

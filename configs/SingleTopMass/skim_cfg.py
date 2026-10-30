@@ -10,7 +10,7 @@ normalisation and the Golden JSON, and gen-level distributions of ALL events
 """
 from hell.config import Process, Module, VarParsing
 from hell.runner import apply_options
-from objects_cff import readers, leptons, jets, check_era, TRIGGERS, MET_FILTERS
+from objects_cff import readers, leptons, jets, nano, check_era, TRIGGERS, MET_FILTERS
 
 options = VarParsing()
 options.register("minJets", 1, int, "minimum number of selected jets")
@@ -36,13 +36,13 @@ if process.job["isData"] and process.job.get("goldenJSON"):
 # Loose objects (half the analysis thresholds), one lepton, >= minJets jets
 path += leptons(process, loose=True)
 process.oneLepton = Module("CollectionSizeFilter", src="leptons", min=1)
-process.looseJets = Module("JetSelector", src="jets", minPt=20, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual", cleanAgainst=["leptons"])
+process.looseJets = Module("JetSelector", src="jets", minPt=20, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource=nano(process)["jetIdSource"], cleanAgainst=["leptons"])
 process.minJets = Module("CollectionSizeFilter", src="looseJets", min=options.minJets)
 path += ["oneLepton", "looseJets", "minJets"]
 # What is kept
 process.skim = Module("TreeWriter", treeName="Events",
                       keep=["run", "luminosityBlock", "event", "genWeight", "HLT_IsoMu24", "HLT_IsoMu27", "HLT_Ele30_WPTight_Gsf", "HLT_Ele32_WPTight_Gsf",
-                            "Flag_*", "Jet_*", "nJet", "Muon_*", "nMuon", "Electron_*", "nElectron", "PuppiMET_*", "MET_*", "RawPuppiMET_*",
+                            "Flag_*", "Jet_*", "nJet", "Muon_*", "nMuon", "Electron_*", "nElectron", "PuppiMET_*", "MET_*", "PFMET_*", "RawPuppiMET_*",
                             "GenPart_*", "nGenPart", "GenJet_*", "nGenJet", "Pileup_nTrueInt", "Pileup_nPU", "PV_npvs", "PV_npvsGood",
                             "Rho_fixedGridRhoFastjetAll", "LHE_*", "LHEScaleWeight", "nLHEScaleWeight", "LHEPdfWeight", "nLHEPdfWeight",
                             "PSWeight", "nPSWeight", "GenMET_*", "genTtbarId"],

@@ -15,7 +15,25 @@ export X509_USER_PROXY=$(voms-proxy-info -path)
 ```
 For CRAB, additionally a CMSSW area with `cmsenv` and `source /cvmfs/cms.cern.ch/crab3/crab.sh`.
 
-## 1. Certification: the Golden JSON of the era
+## 1. The era, its NanoAOD version and its corrections
+
+Three files pin down what an era means; check them before anything else:
+- `samples/certification.yaml`: Golden JSON, run range (2022 = runs 355100 to 359021, 2022EE = 359022 to
+  362760, one file), normtag, BRIL environment. Compare with
+  https://cms-service-dqmdc.web.cern.ch/CAF/certification/ and the TOP recommendations before a production.
+- `samples/corrections.yaml`: the POG correctionlib JSONs of the era and the names used (JEC/JER tags, b-tag
+  working points and scale factors, jet id, veto map, pileup, muon and electron scale factors).
+  `hell corrections --era 2022` prints and checks them; `--list jerc --grep Regrouped` shows a JSON's content.
+- `samples/nanoaod.yaml`: the NanoAOD versions and what differs between them (jet id source, `MET_` vs
+  `PFMET_`, electron supercluster eta, tagger branch). Every sample declares its version (`nanoVersion`, taken
+  from the dataset name by `hell samples create`); every job checks the declared version against the branches
+  of its input and refuses a mismatch. If the campaign moves to a new NanoAOD version (v12 to v15 for
+  example), add the version there if it is missing, then recreate the sample entries: the selections follow
+  the version automatically (central jet id and `PFMET` for v15), nothing in the configs changes.
+  `hell navigate <file>` prints the version it detects in a file.
+
+A new era (2023, 2024) is therefore: an entry in each of the three files, then the steps below.
+
 
 `samples/certification.yaml` is the master list: Golden JSON, run range (2022 is split into 2022 = runs
 355100 to 359021 and 2022EE = 359022 to 362760, sharing one file), normtag, BRIL environment. Check it
@@ -85,9 +103,12 @@ to that file. For 2022 pre-EE: 8086.1 pb^-1 recorded.
 ```bash
 hell run configs/SingleTopMass/skim_cfg.py sample=TbarBQtoLNu_t_channel_4FS era=2022 maxFiles=1 maxEvents=20000 outputFile=test_skim.root
 hell run configs/SingleTopMass/skim_cfg.py sample=Muon_2022C era=2022 maxFiles=1 maxEvents=20000 outputFile=test_data.root
-hell navigate test_skim.root                        # content, bookkeeping, cutflow, provenance
+hell navigate test_skim.root                        # content, bookkeeping, cutflow, provenance, NanoAOD version
 hell navigate test_data.root | grep -A3 golden      # the Golden JSON filter is in the path for data
 ```
+The log starts with `input matches NanoAOD v12` (the declared version against the file) and, for v12, `jet id
+from the manual recipe`; a file of another version is refused with the list of branches that do not fit.
+For a quick look at a single file of a version not in the registry: `hell run ... inputFiles=<file> era=2022EE nanoVersion=15`.
 What the skim keeps is defined in `configs/SingleTopMass/skim_cfg.py` (branches) and
 `configs/SingleTopMass/objects_cff.py` (loose objects); gen-level distributions of all events, the `Runs` and
 `LuminosityBlocks` trees, counts and provenance are always there. No corrections are applied in the skim.

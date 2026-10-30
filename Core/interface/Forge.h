@@ -61,6 +61,7 @@ class Forge {
   };
   void buildModules();
   void validateDependencies() const;
+  void checkNanoVersion();
 
   ParameterSet config_;
   JobContext job_;

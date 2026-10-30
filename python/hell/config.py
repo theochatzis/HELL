@@ -146,6 +146,8 @@ class VarParsing:
         self.register("maxFiles", -1, int, "use at most this many files of the sample")
         self.register("firstFile", 0, int, "index of the first file of the sample to use")
         self.register("crossSection", -1.0, float, "cross section in pb (overrides the sample registry)")
+        self.register("nanoVersion", "", str, "NanoAOD version of the input (default: from the sample registry or detected from the first file); the selections follow it")
+        self.register("allowNanoVersionMismatch", False, bool, "run even if the input files do not match the declared NanoAOD version")
         self.register("goldenJSON", "", str, "certification JSON for data (default: from the sample registry; 'none' disables the filter, e.g. when CRAB applies the lumi mask)")
         self.register("logLevel", "INFO", str, "DEBUG, INFO, WARNING, ERROR")
 

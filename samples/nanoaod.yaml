@@ -1,0 +1,34 @@
+# NanoAOD versions: what differs between them for HELL, and how to recognise a version from a file.
+# A sample declares its version (hell samples create reads it from the dataset name, e.g. NanoAODv12);
+# every job checks the declared version against the branch fingerprint of its first input file and refuses
+# to run on a mismatch (allowNanoVersionMismatch=True to override). The settings of the declared version
+# are given to the configs (objects_cff reads them) so that the selections follow the version of the input.
+# Entries of a version inherit from `defaults`; only the differences are written.
+defaults:
+  jetIdSource: manual            # manual (recomputed from the PF fractions) | correctionlib (central JME JSON, needs the multiplicities) | nano (Jet_jetId flag)
+  jetIdBranch: Jet_jetId
+  pfMET: MET                     # prefix of the PF MET collection
+  puppiMET: PuppiMET
+  metForAnalysis: PuppiMET       # which MET the analysis uses
+  electronEtaSC: deltaEtaSC      # deltaEtaSC: etaSC = eta + Electron_deltaEtaSC; superclusterEta: Electron_superclusterEta directly
+  btagger: btagPNetB             # jet b-tag score branch (Jet_<btagger>)
+  jetMultiplicities: false       # Jet_chMultiplicity / Jet_neMultiplicity present
+versions:
+  "9":                           # Run 2 UL (CMSSW 10_6)
+    fingerprint: {present: [Jet_jetId, MET_pt, Jet_btagDeepFlavB], absent: [Jet_btagPNetB, Jet_chMultiplicity]}
+    btagger: btagDeepFlavB
+    note: Run 2 UL; PNet not available, DeepJet is the tagger
+  "12":                          # Run 3 2022/2023 (CMSSW 13_0_X)
+    fingerprint: {present: [Jet_jetId, MET_pt, Jet_btagPNetB], absent: [Jet_chMultiplicity, PFMET_pt]}
+    note: Jet_jetId unreliable for PUPPI jets, recomputed manually; no multiplicities
+  "13":
+    fingerprint: {present: [Jet_chMultiplicity, MET_pt, Jet_btagPNetB], absent: [PFMET_pt]}
+    jetIdSource: correctionlib
+    jetMultiplicities: true
+  "15":                          # CMSSW 15_0_X re-NanoAOD of 2022-2024
+    fingerprint: {present: [Jet_chMultiplicity, PFMET_pt, Jet_btagUParTAK4B, Electron_superclusterEta], absent: [Jet_jetId, MET_pt]}
+    jetIdSource: correctionlib
+    jetMultiplicities: true
+    pfMET: PFMET
+    electronEtaSC: superclusterEta
+    note: Jet_jetId removed; MET_ renamed PFMET_; UParT taggers added (btagger kept at PNet, switch to btagUParTAK4B deliberately)

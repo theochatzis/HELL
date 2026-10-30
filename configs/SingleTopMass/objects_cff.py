@@ -25,13 +25,24 @@ MET_FILTERS = ["Flag_goodVertices", "Flag_globalSuperTightHalo2016Filter", "Flag
                "Flag_BadPFMuonFilter", "Flag_BadPFMuonDzFilter", "Flag_hfNoisyHitsFilter", "Flag_eeBadScFilter"]
 
 
+def nano(process):
+    """Settings of the NanoAOD version declared for the job (samples/nanoaod.yaml); fails if none is known."""
+    settings = process.job.get("nano")
+    if not settings:
+        raise HellError("no NanoAOD version for this job: give nanoVersion=<N> or a sample with nanoVersion in samples/<era>.yaml "
+                        f"(known versions: see samples/nanoaod.yaml)")
+    return settings
+
+
 def readers(process):
+    """NanoAOD readers, with the branch choices of the declared NanoAOD version."""
+    n = nano(process)
     process.eventInfo = Module("NanoEventInfoReader")
     process.genParts = Module("NanoGenParticleReader")
     process.muons = Module("NanoMuonReader")
-    process.electrons = Module("NanoElectronReader")
-    process.jets = Module("NanoJetReader", btagger="btagPNetB")
-    process.met = Module("NanoMETReader", prefix="PuppiMET")
+    process.electrons = Module("NanoElectronReader", etaSC=n["electronEtaSC"])
+    process.jets = Module("NanoJetReader", btagger=n["btagger"])
+    process.met = Module("NanoMETReader", prefix=n["metForAnalysis"])
     return ["eventInfo", "genParts", "muons", "electrons", "jets", "met"]
 
 
@@ -49,10 +60,12 @@ def leptons(process, loose=False):
 def jets(process, era, min_pt=30.0, apply_veto_map=True):
     """Jets cleaned against the selected leptons, JES/JER from the central JME JSON (JER smearing of MC;
     the job variation jes<Source>Up/Down or jerUp/Down selects the shift), b-tag working points from the
-    central BTV JSON, optional jet veto map. The jet id is recomputed from the PF fractions (tight + lepton
-    veto): the Run 3 NanoAODv12 flag is unreliable (see Modules/Selection/interface/JetId.h)."""
+    central BTV JSON, optional jet veto map. The jet id source follows the NanoAOD version: recomputed from
+    the PF fractions for v12 (the flag is unreliable, see Modules/Selection/interface/JetId.h), the central
+    JME JSON from v13 on."""
     check_era(era)
-    process.goodJets = Module("JetSelector", src="jets", minPt=min_pt * 0.8, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource="manual",
+    jet_id_source = nano(process)["jetIdSource"]   # manual for NanoAODv12, the central JSON when the multiplicities exist
+    process.goodJets = Module("JetSelector", src="jets", minPt=min_pt * 0.8, maxAbsEta=4.7, jetId="tightLepVeto", jetIdSource=jet_id_source,
                               cleanAgainst=["leptons"], minDeltaR=0.4)
     process.jetVar = Module("JetEnergyCorrector", src="goodJets", met="met", eventInfo="eventInfo", smear=True, minPtMET=15)
     process.corrJets = Module("JetSelector", src="jetVar", minPt=min_pt, maxAbsEta=4.7, jetId="none", cleanAgainst=[])

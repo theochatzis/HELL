@@ -29,6 +29,18 @@ def apply_options(process, options):
         process.job["crossSection"] = options.crossSection
     if options.goldenJSON:
         process.job["goldenJSON"] = "" if options.goldenJSON.lower() == "none" else options.goldenJSON
+    # NanoAOD version: option, else the sample registry, else detected from the first input file
+    from hell.nanoaod import settings, detect_version
+    version = options.nanoVersion or (sample or {}).get("nanoVersion") or ""
+    if not version and process.input["files"]:
+        version = detect_version(process.input["files"][0]) or ""
+        if version:
+            log(f"NanoAOD version {version} detected from {process.input['files'][0]}")
+    if version:
+        nano = settings(version)
+        process.job["nanoVersion"] = str(version)
+        process.job["nano"] = nano
+        process.job["allowNanoVersionMismatch"] = bool(options.allowNanoVersionMismatch)
     if process.job.get("era"):   # central corrections of the era (samples/corrections.yaml), if listed
         from hell.corrections import corrections
         try:

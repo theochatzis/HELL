@@ -21,6 +21,7 @@
 - [batch.md](tools/batch.md): HTCondor and CRAB submission, check, resubmit, merge
 - [samples.md](tools/samples.md): sample registry, cross sections, file lists, bookkeeping
 - [plotting.md](tools/plotting.md): CMS TDR style (C++ and PyROOT), data/MC stacks
+- [nanoaod_versions.md](tools/nanoaod_versions.md): selections aligned to the NanoAOD version of the input
 - [corrections.md](tools/corrections.md): central POG corrections through correctionlib (working points, JES/JER, pileup, scale factors)
 - [validation.md](tools/validation.md): data/MC agreement metrics of objects and scale factors
 - [navigator.md](tools/navigator.md): `hell navigate` for files, code and the data model

@@ -3,8 +3,8 @@
 Top quark mass in single-top t-channel events. Configurations: `configs/SingleTopMass/`. Methodology and
 status: `docs/methodology/single_top_mass.md`. Objects: `docs/physics/objects.md`. Running log: `docs/issues/`.
 
-[skim.md](skim.md): step by step from DAS to the skims (samples, cross sections, file lists, luminosity, test,
-condor and CRAB production, bookkeeping).
+[skim.md](skim.md): step by step from DAS to the skims (era files: certification, corrections, NanoAOD
+version; samples, cross sections, file lists, luminosity, test, condor and CRAB production, bookkeeping).
 
 This directory holds analysis-specific studies and scripts (one sub-directory per study, each with a README
 and the commands used), as opposed to the framework tools in `python/hell` and the module code in `Modules/`.

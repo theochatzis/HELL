@@ -124,6 +124,13 @@ def report(path, pattern="*", entries=0, show_provenance=True, tree_name=None):
     f = open_file(path)
     lines = [f"[HELL] navigating {path}", ""]
     st = structure(f)
+    try:
+        from hell.nanoaod import detect_version
+        detected = detect_version(path)
+        if detected:
+            lines.append(f"NanoAOD version (branch fingerprint): v{detected}")
+    except Exception:
+        pass
     lines.append("Structure:")
     for name, cls, info in st:
         lines.append(f"  {name:36s} {cls:14s} {info}")

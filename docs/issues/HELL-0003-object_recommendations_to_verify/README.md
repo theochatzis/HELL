@@ -57,8 +57,9 @@ LUM twikis) that need a CERN login I cannot pass from this session, and the XSDB
   `pfRelIso03_all < 0.10` (the cut-based id already includes isolation: is the extra cut wanted?), veto:
   `cutBased >= 2`, pt > 15. Scale factors: `Electron-ID-SF` with year `2022Re-recoBCD`, working point `Tight`
   and the reco factors `RecoBelow20`, `Reco20to75`, `RecoAbove75` with the boundaries at 20 and 75 GeV;
-  HLT `Electron-HLT-SF`, path `HLT_SF_Ele30_TightID`. Check the year keys for 2022EE (`2022Re-recoE+PromptFG`),
-  the reco boundaries, and whether the EGM scale and smearing corrections (`electronSS`) must be applied.
+  HLT `Electron-HLT-SF`, path `HLT_SF_Ele30_TightID`. The 2022EE year key `2022Re-recoE+PromptFG` and all 2022EE
+  correction names load and evaluate (HELL-0004, 2026-10-30). Check the reco boundaries and whether the EGM
+  scale and smearing corrections (`electronSS`) must be applied.
 - [ ] **Triggers.** `HLT_IsoMu24` and `HLT_Ele30_WPTight_Gsf` for 2022 (and the same for 2022EE). Confirm the
   recommended single-lepton paths and whether the OR with `HLT_IsoMu27` / `HLT_Ele32_WPTight_Gsf` is used.
 - [ ] **Lepton cleaning** of jets with dR > 0.4 against the selected (not the veto) leptons; check the TOP convention.
